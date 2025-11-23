@@ -1,0 +1,42 @@
+# Node dependencies
+node_modules/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment variables
+.env
+.env.*
+
+# Build outputs
+/build/
+/dist/
+/.next/
+/.nuxt/
+/out/
+/functions/
+
+# Testing
+coverage/
+.jest/
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+
+# Package managers
+.package-lock.json
+.pnp.cjs
+.pnp.loader.mjs
+.pnp.data.json
+.pnpm-store/
+
+# Misc
+*.local
+*.tsbuildinfo
