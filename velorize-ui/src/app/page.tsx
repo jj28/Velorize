@@ -1,15 +1,36 @@
+'use client';
+
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuthStore } from '../store/authStore';
+import { Container, Box, CircularProgress } from '@mui/material';
+
 export default function Home() {
+  const router = useRouter();
+  const { isAuthenticated, initialize } = useAuthStore();
+
+  useEffect(() => {
+    initialize();
+  }, [initialize]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push('/dashboard');
+    } else {
+      router.push('/login');
+    }
+  }, [isAuthenticated, router]);
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-24">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Velorize</h1>
-        <p className="text-xl text-gray-600">
-          Democratizing Demand Planning for SMEs
-        </p>
-        <p className="mt-8 text-sm text-gray-500">
-          From Chaos to Clarity. Your First Lap of S&OP.
-        </p>
-      </div>
-    </main>
+    <Container>
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="100vh"
+      >
+        <CircularProgress />
+      </Box>
+    </Container>
   );
 }

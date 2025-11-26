@@ -1,10 +1,11 @@
-import type { Metadata } from 'next';
-import './globals.css';
+'use client';
 
-export const metadata: Metadata = {
-  title: 'Velorize - Demand Planning for SMEs',
-  description: 'Democratizing S&OP for Malaysian SMEs',
-};
+import { ThemeProvider } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+import { AppRouterCacheProvider } from '@mui/material-nextjs/v14-appRouter';
+import { Toaster } from 'react-hot-toast';
+import theme from '../styles/theme';
+import { AuthGuard } from '../components/auth/AuthGuard';
 
 export default function RootLayout({
   children,
@@ -13,7 +14,26 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <AppRouterCacheProvider>
+          <ThemeProvider theme={theme}>
+            <CssBaseline />
+            <AuthGuard>
+              {children}
+            </AuthGuard>
+            <Toaster
+              position="top-right"
+              toastOptions={{
+                duration: 4000,
+                style: {
+                  background: '#333',
+                  color: '#fff',
+                },
+              }}
+            />
+          </ThemeProvider>
+        </AppRouterCacheProvider>
+      </body>
     </html>
   );
 }
