@@ -8,9 +8,9 @@ from app.models.bom import BOMStatus, ComponentType
 class BOMComponentBase(BaseModel):
     component_product_id: int
     component_type: ComponentType
-    quantity_per_batch: Decimal = Field(..., gt=0, decimal_places=4)
-    wastage_percentage: Decimal = Field(0, ge=0, le=100, decimal_places=2)
-    unit_cost: Decimal = Field(..., gt=0, decimal_places=4)
+    quantity_per_batch: Decimal = Field(..., gt=0)
+    wastage_percentage: Decimal = Field(0, ge=0, le=100)
+    unit_cost: Decimal = Field(..., gt=0)
     is_critical: bool = False
     substitute_product_id: Optional[int] = None
     notes: Optional[str] = None
@@ -36,11 +36,11 @@ class BOMBase(BaseModel):
     product_id: int
     version: str = Field("1.0", max_length=20)
     status: BOMStatus = BOMStatus.DRAFT
-    batch_size: Decimal = Field(1, gt=0, decimal_places=4)
-    yield_percentage: Decimal = Field(100, gt=0, le=100, decimal_places=2)
+    batch_size: Decimal = Field(1, gt=0)
+    yield_percentage: Decimal = Field(100, gt=0, le=100)
     production_time_minutes: Optional[int] = Field(None, ge=0)
-    labor_cost_per_batch: Optional[Decimal] = Field(None, ge=0, decimal_places=4)
-    overhead_cost_per_batch: Optional[Decimal] = Field(None, ge=0, decimal_places=4)
+    labor_cost_per_batch: Optional[Decimal] = Field(None, ge=0)
+    overhead_cost_per_batch: Optional[Decimal] = Field(None, ge=0)
     description: Optional[str] = None
 
 
@@ -86,11 +86,11 @@ class BOMCreate(BOMBase):
 class BOMUpdate(BaseModel):
     version: Optional[str] = Field(None, max_length=20)
     status: Optional[BOMStatus] = None
-    batch_size: Optional[Decimal] = Field(None, gt=0, decimal_places=4)
-    yield_percentage: Optional[Decimal] = Field(None, gt=0, le=100, decimal_places=2)
+    batch_size: Optional[Decimal] = Field(None, gt=0)
+    yield_percentage: Optional[Decimal] = Field(None, gt=0, le=100)
     production_time_minutes: Optional[int] = Field(None, ge=0)
-    labor_cost_per_batch: Optional[Decimal] = Field(None, ge=0, decimal_places=4)
-    overhead_cost_per_batch: Optional[Decimal] = Field(None, ge=0, decimal_places=4)
+    labor_cost_per_batch: Optional[Decimal] = Field(None, ge=0)
+    overhead_cost_per_batch: Optional[Decimal] = Field(None, ge=0)
     description: Optional[str] = None
 
 

@@ -16,24 +16,24 @@ class AOPTargetBase(BaseModel):
     target_category: AOPCategory
     target_name: str = Field(..., max_length=255)
     target_description: Optional[str] = None
-    target_revenue_rm: Optional[Decimal] = Field(None, ge=0, decimal_places=2)
-    target_volume_units: Optional[Decimal] = Field(None, ge=0, decimal_places=4)
-    target_margin_rm: Optional[Decimal] = Field(None, ge=0, decimal_places=2)
-    target_margin_percentage: Optional[Decimal] = Field(None, ge=0, le=100, decimal_places=2)
-    target_market_share_percentage: Optional[Decimal] = Field(None, ge=0, le=100, decimal_places=2)
+    target_revenue_rm: Optional[Decimal] = Field(None, ge=0)
+    target_volume_units: Optional[Decimal] = Field(None, ge=0)
+    target_margin_rm: Optional[Decimal] = Field(None, ge=0)
+    target_margin_percentage: Optional[Decimal] = Field(None, ge=0, le=100)
+    target_market_share_percentage: Optional[Decimal] = Field(None, ge=0, le=100)
     target_new_customers: Optional[int] = Field(None, ge=0)
-    target_customer_retention_rate: Optional[Decimal] = Field(None, ge=0, le=100, decimal_places=2)
-    target_inventory_turnover: Optional[Decimal] = Field(None, ge=0, decimal_places=2)
-    target_cost_reduction_rm: Optional[Decimal] = Field(None, ge=0, decimal_places=2)
-    target_service_level_percentage: Optional[Decimal] = Field(None, ge=0, le=100, decimal_places=2)
-    actual_revenue_rm: Decimal = Field(0, ge=0, decimal_places=2)
-    actual_volume_units: Decimal = Field(0, ge=0, decimal_places=4)
-    actual_margin_rm: Decimal = Field(0, ge=0, decimal_places=2)
-    actual_margin_percentage: Decimal = Field(0, ge=0, decimal_places=2)
-    ytd_achievement_percentage: Decimal = Field(0, ge=0, decimal_places=2)
-    forecast_achievement_percentage: Decimal = Field(0, ge=0, decimal_places=2)
-    variance_to_target_rm: Decimal = Field(0, decimal_places=2)
-    variance_to_target_percentage: Decimal = Field(0, decimal_places=2)
+    target_customer_retention_rate: Optional[Decimal] = Field(None, ge=0, le=100)
+    target_inventory_turnover: Optional[Decimal] = Field(None, ge=0)
+    target_cost_reduction_rm: Optional[Decimal] = Field(None, ge=0)
+    target_service_level_percentage: Optional[Decimal] = Field(None, ge=0, le=100)
+    actual_revenue_rm: Decimal = Field(0, ge=0)
+    actual_volume_units: Decimal = Field(0, ge=0)
+    actual_margin_rm: Decimal = Field(0, ge=0)
+    actual_margin_percentage: Decimal = Field(0, ge=0)
+    ytd_achievement_percentage: Decimal = Field(0, ge=0)
+    forecast_achievement_percentage: Decimal = Field(0, ge=0)
+    variance_to_target_rm: Decimal = Field(0)
+    variance_to_target_percentage: Decimal = Field(0)
     risk_level: str = Field("Medium", max_length=20)
     risk_factors: Optional[str] = None
     mitigation_actions: Optional[str] = None
@@ -89,24 +89,24 @@ class AOPTargetCreate(AOPTargetBase):
 
 class AOPTargetUpdate(BaseModel):
     target_description: Optional[str] = None
-    target_revenue_rm: Optional[Decimal] = Field(None, ge=0, decimal_places=2)
-    target_volume_units: Optional[Decimal] = Field(None, ge=0, decimal_places=4)
-    target_margin_rm: Optional[Decimal] = Field(None, ge=0, decimal_places=2)
-    target_margin_percentage: Optional[Decimal] = Field(None, ge=0, le=100, decimal_places=2)
-    target_market_share_percentage: Optional[Decimal] = Field(None, ge=0, le=100, decimal_places=2)
+    target_revenue_rm: Optional[Decimal] = Field(None, ge=0)
+    target_volume_units: Optional[Decimal] = Field(None, ge=0)
+    target_margin_rm: Optional[Decimal] = Field(None, ge=0)
+    target_margin_percentage: Optional[Decimal] = Field(None, ge=0, le=100)
+    target_market_share_percentage: Optional[Decimal] = Field(None, ge=0, le=100)
     target_new_customers: Optional[int] = Field(None, ge=0)
-    target_customer_retention_rate: Optional[Decimal] = Field(None, ge=0, le=100, decimal_places=2)
-    target_inventory_turnover: Optional[Decimal] = Field(None, ge=0, decimal_places=2)
-    target_cost_reduction_rm: Optional[Decimal] = Field(None, ge=0, decimal_places=2)
-    target_service_level_percentage: Optional[Decimal] = Field(None, ge=0, le=100, decimal_places=2)
-    actual_revenue_rm: Optional[Decimal] = Field(None, ge=0, decimal_places=2)
-    actual_volume_units: Optional[Decimal] = Field(None, ge=0, decimal_places=4)
-    actual_margin_rm: Optional[Decimal] = Field(None, ge=0, decimal_places=2)
-    actual_margin_percentage: Optional[Decimal] = Field(None, ge=0, decimal_places=2)
-    ytd_achievement_percentage: Optional[Decimal] = Field(None, ge=0, decimal_places=2)
-    forecast_achievement_percentage: Optional[Decimal] = Field(None, ge=0, decimal_places=2)
-    variance_to_target_rm: Optional[Decimal] = Field(None, decimal_places=2)
-    variance_to_target_percentage: Optional[Decimal] = Field(None, decimal_places=2)
+    target_customer_retention_rate: Optional[Decimal] = Field(None, ge=0, le=100)
+    target_inventory_turnover: Optional[Decimal] = Field(None, ge=0)
+    target_cost_reduction_rm: Optional[Decimal] = Field(None, ge=0)
+    target_service_level_percentage: Optional[Decimal] = Field(None, ge=0, le=100)
+    actual_revenue_rm: Optional[Decimal] = Field(None, ge=0)
+    actual_volume_units: Optional[Decimal] = Field(None, ge=0)
+    actual_margin_rm: Optional[Decimal] = Field(None, ge=0)
+    actual_margin_percentage: Optional[Decimal] = Field(None, ge=0)
+    ytd_achievement_percentage: Optional[Decimal] = Field(None, ge=0)
+    forecast_achievement_percentage: Optional[Decimal] = Field(None, ge=0)
+    variance_to_target_rm: Optional[Decimal] = Field(None)
+    variance_to_target_percentage: Optional[Decimal] = Field(None)
     risk_level: Optional[str] = Field(None, max_length=20)
     risk_factors: Optional[str] = None
     mitigation_actions: Optional[str] = None
@@ -127,6 +127,12 @@ class AOPTargetResponse(AOPTargetBase):
     progress_percentage: float
     created_at: datetime
     updated_at: datetime
-    
+
     class Config:
         from_attributes = True
+
+
+# Aliases for backward compatibility
+AOPCreate = AOPTargetCreate
+AOPUpdate = AOPTargetUpdate
+AOPResponse = AOPTargetResponse

@@ -380,7 +380,7 @@ export default function AnalyticsPage() {
           <Button
             variant="contained"
             startIcon={<Download />}
-            onClick={() => toast.info('Export functionality coming soon')}
+            onClick={() => toast('Export functionality coming soon', { icon: 'ℹ️' })}
           >
             Export
           </Button>
@@ -500,6 +500,7 @@ export default function AnalyticsPage() {
                       rows={abcData}
                       columns={abcColumns}
                       loading={loading}
+                      getRowId={(row) => row.product_id}
                       pageSize={25}
                       rowsPerPageOptions={[10, 25, 50]}
                       disableSelectionOnClick
@@ -537,6 +538,7 @@ export default function AnalyticsPage() {
                       rows={xyzData}
                       columns={xyzColumns}
                       loading={loading}
+                      getRowId={(row) => row.product_id}
                       pageSize={25}
                       rowsPerPageOptions={[10, 25, 50]}
                       disableSelectionOnClick
@@ -574,6 +576,7 @@ export default function AnalyticsPage() {
                       rows={matrixData}
                       columns={matrixColumns}
                       loading={loading}
+                      getRowId={(row) => row.product_id}
                       pageSize={25}
                       rowsPerPageOptions={[10, 25, 50]}
                       disableSelectionOnClick
@@ -611,6 +614,7 @@ export default function AnalyticsPage() {
                       rows={velocityData}
                       columns={velocityColumns}
                       loading={loading}
+                      getRowId={(row) => row.product_id}
                       pageSize={25}
                       rowsPerPageOptions={[10, 25, 50]}
                       disableSelectionOnClick

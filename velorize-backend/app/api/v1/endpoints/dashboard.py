@@ -40,27 +40,27 @@ def get_dashboard_overview(
     
     # Current month sales
     current_month_sales = db.query(
-        func.sum(SalesActual.net_amount).label('revenue'),
+        func.sum(SalesActual.net_sales_amount).label('revenue'),
         func.sum(SalesActual.quantity_sold).label('quantity'),
         func.count(SalesActual.id).label('transactions')
     ).filter(
-        SalesActual.sale_date >= current_month_start
+        SalesActual.transaction_date >= current_month_start
     ).first()
-    
+
     # Last month sales for comparison
     last_month_sales = db.query(
-        func.sum(SalesActual.net_amount).label('revenue'),
+        func.sum(SalesActual.net_sales_amount).label('revenue'),
         func.sum(SalesActual.quantity_sold).label('quantity')
     ).filter(
-        SalesActual.sale_date.between(last_month_start, last_month_end)
+        SalesActual.transaction_date.between(last_month_start, last_month_end)
     ).first()
     
     # YTD sales
     ytd_sales = db.query(
-        func.sum(SalesActual.net_amount).label('revenue'),
+        func.sum(SalesActual.net_sales_amount).label('revenue'),
         func.sum(SalesActual.quantity_sold).label('quantity')
     ).filter(
-        SalesActual.sale_date >= ytd_start
+        SalesActual.transaction_date >= ytd_start
     ).first()
     
     # Calculate growth rates
@@ -76,25 +76,25 @@ def get_dashboard_overview(
     
     # Total inventory value
     total_inventory_value = db.query(
-        func.sum(StockOnHand.total_cost)
+        func.sum(StockOnHand.total_value)
     ).scalar() or 0
     
     # Low stock items
     low_stock_items = db.query(StockOnHand).join(Product).filter(
-        StockOnHand.quantity_available <= Product.reorder_level
+        StockOnHand.available_quantity <= Product.reorder_level
     ).count()
     
     # Expired items
     expired_items = db.query(StockOnHand).filter(
-        StockOnHand.expiry_date < today
+        StockOnHand.earliest_expiry_date < today
     ).count()
     
     # Items expiring within 30 days
     expiring_soon = db.query(StockOnHand).filter(
         and_(
-            StockOnHand.expiry_date.isnot(None),
-            StockOnHand.expiry_date <= today + timedelta(days=30),
-            StockOnHand.expiry_date >= today
+            StockOnHand.earliest_expiry_date.isnot(None),
+            StockOnHand.earliest_expiry_date <= today + timedelta(days=30),
+            StockOnHand.earliest_expiry_date >= today
         )
     ).count()
     
@@ -122,15 +122,15 @@ def get_dashboard_overview(
     # Active forecasts
     future_date = today + timedelta(days=30)
     active_forecasts = db.query(DemandForecast).filter(
-        DemandForecast.status == ForecastStatus.ACTIVE,
-        DemandForecast.forecast_period >= today,
-        DemandForecast.forecast_period <= future_date
+        DemandForecast.status == ForecastStatus.APPROVED,
+        DemandForecast.forecast_period_start >= today,
+        DemandForecast.forecast_period_start <= future_date
     ).count()
     
     # Products with forecasts
     products_with_forecasts = db.query(DemandForecast.product_id).filter(
-        DemandForecast.status == ForecastStatus.ACTIVE,
-        DemandForecast.forecast_period >= today
+        DemandForecast.status == ForecastStatus.APPROVED,
+        DemandForecast.forecast_period_start >= today
     ).distinct().count()
     
     forecast_coverage = (products_with_forecasts / active_products * 100) if active_products > 0 else 0
@@ -148,8 +148,8 @@ def get_dashboard_overview(
     # Current AOP status
     current_year = today.year
     current_aop = db.query(AnnualOperatingPlan).filter(
-        AnnualOperatingPlan.plan_year == current_year,
-        AnnualOperatingPlan.status == AOPStatus.ACTIVE
+        AnnualOperatingPlan.fiscal_year == current_year,
+        AnnualOperatingPlan.status == AOPStatus.APPROVED
     ).first()
     
     aop_performance = None
@@ -172,20 +172,20 @@ def get_dashboard_overview(
     
     # Recent sales (last 7 days)
     recent_sales = db.query(
-        func.sum(SalesActual.net_amount).label('revenue'),
+        func.sum(SalesActual.net_sales_amount).label('revenue'),
         func.count(SalesActual.id).label('transactions')
     ).filter(
-        SalesActual.sale_date >= today - timedelta(days=7)
+        SalesActual.transaction_date >= today - timedelta(days=7)
     ).first()
     
     # Recent stock movements (last 7 days)
     recent_stock_ins = db.query(StockMovement).filter(
-        StockMovement.movement_type == MovementType.STOCK_IN,
+        StockMovement.movement_type == MovementType.RECEIPT,
         StockMovement.movement_date >= today - timedelta(days=7)
     ).count()
     
     recent_stock_outs = db.query(StockMovement).filter(
-        StockMovement.movement_type == MovementType.STOCK_OUT,
+        StockMovement.movement_type == MovementType.ISSUE,
         StockMovement.movement_date >= today - timedelta(days=7)
     ).count()
     
@@ -258,16 +258,16 @@ def get_sales_trends(
         start_date = end_date - timedelta(days=30)
         
         daily_sales = db.query(
-            SalesActual.sale_date,
-            func.sum(SalesActual.net_amount).label('revenue'),
+            SalesActual.transaction_date,
+            func.sum(SalesActual.net_sales_amount).label('revenue'),
             func.sum(SalesActual.quantity_sold).label('quantity')
         ).filter(
-            SalesActual.sale_date.between(start_date, end_date)
-        ).group_by(SalesActual.sale_date).order_by(SalesActual.sale_date).all()
+            SalesActual.transaction_date.between(start_date, end_date)
+        ).group_by(SalesActual.transaction_date).order_by(SalesActual.transaction_date).all()
         
         trends = [
             {
-                "date": record.sale_date.isoformat(),
+                "date": record.transaction_date.isoformat(),
                 "revenue": round(float(record.revenue), 2),
                 "quantity": round(float(record.quantity), 2)
             }
@@ -279,13 +279,13 @@ def get_sales_trends(
         start_date = end_date - timedelta(weeks=12)
         
         weekly_sales = db.query(
-            func.date_trunc('week', SalesActual.sale_date).label('week'),
-            func.sum(SalesActual.net_amount).label('revenue'),
+            func.date_trunc('week', SalesActual.transaction_date).label('week'),
+            func.sum(SalesActual.net_sales_amount).label('revenue'),
             func.sum(SalesActual.quantity_sold).label('quantity')
         ).filter(
-            SalesActual.sale_date.between(start_date, end_date)
+            SalesActual.transaction_date.between(start_date, end_date)
         ).group_by(
-            func.date_trunc('week', SalesActual.sale_date)
+            func.date_trunc('week', SalesActual.transaction_date)
         ).order_by('week').all()
         
         trends = [
@@ -300,13 +300,13 @@ def get_sales_trends(
         
     else:  # monthly
         monthly_sales = db.query(
-            func.date_trunc('month', SalesActual.sale_date).label('month'),
-            func.sum(SalesActual.net_amount).label('revenue'),
+            func.date_trunc('month', SalesActual.transaction_date).label('month'),
+            func.sum(SalesActual.net_sales_amount).label('revenue'),
             func.sum(SalesActual.quantity_sold).label('quantity')
         ).filter(
-            SalesActual.sale_date.between(start_date, end_date)
+            SalesActual.transaction_date.between(start_date, end_date)
         ).group_by(
-            func.date_trunc('month', SalesActual.sale_date)
+            func.date_trunc('month', SalesActual.transaction_date)
         ).order_by('month').all()
         
         trends = [
@@ -346,12 +346,12 @@ def get_top_products(
     # Base query
     query = db.query(
         SalesActual.product_id,
-        func.sum(SalesActual.net_amount).label('total_revenue'),
+        func.sum(SalesActual.net_sales_amount).label('total_revenue'),
         func.sum(SalesActual.quantity_sold).label('total_quantity'),
         func.avg(SalesActual.unit_price).label('avg_price'),
         func.count(SalesActual.id).label('transaction_count')
     ).filter(
-        SalesActual.sale_date.between(start_date, end_date)
+        SalesActual.transaction_date.between(start_date, end_date)
     ).group_by(SalesActual.product_id)
     
     # Order by selected metric
@@ -370,16 +370,16 @@ def get_top_products(
         product = db.query(Product).filter(Product.id == record.product_id).first()
         
         # Calculate estimated profit margin
-        if product and product.cost_price and product.cost_price > 0:
+        if product and product.standard_cost and product.standard_cost > 0:
             avg_price = float(record.avg_price or 0)
-            cost_price = float(product.cost_price)
+            cost_price = float(product.standard_cost)
             profit_margin = ((avg_price - cost_price) / avg_price * 100) if avg_price > 0 else 0
         else:
             profit_margin = 0
         
         top_products.append({
             "product_id": record.product_id,
-            "product_code": product.product_code if product else f"PROD-{record.product_id}",
+            "product_code": product.sku if product else f"PROD-{record.product_id}",
             "product_name": product.name if product else "Unknown Product",
             "total_revenue": round(float(record.total_revenue), 2),
             "total_quantity": round(float(record.total_quantity), 2),
@@ -411,12 +411,12 @@ def get_inventory_alerts(
     
     # Stock out items
     stock_out_items = db.query(StockOnHand).filter(
-        StockOnHand.quantity_available <= 0
+        StockOnHand.available_quantity <= 0
     ).count()
     
     # Critical low stock (below 50% of reorder level)
     critical_low_query = db.query(StockOnHand).join(Product).filter(
-        StockOnHand.quantity_available <= Product.reorder_level * 0.5,
+        StockOnHand.available_quantity <= Product.reorder_level * 0.5,
         Product.reorder_level > 0
     )
     critical_low_items = critical_low_query.count()
@@ -424,8 +424,8 @@ def get_inventory_alerts(
     
     # Items at reorder level
     reorder_query = db.query(StockOnHand).join(Product).filter(
-        StockOnHand.quantity_available <= Product.reorder_level,
-        StockOnHand.quantity_available > Product.reorder_level * 0.5,
+        StockOnHand.available_quantity <= Product.reorder_level,
+        StockOnHand.available_quantity > Product.reorder_level * 0.5,
         Product.reorder_level > 0
     )
     reorder_items = reorder_query.count()
@@ -433,7 +433,7 @@ def get_inventory_alerts(
     
     # Expired items
     expired_query = db.query(StockOnHand).filter(
-        StockOnHand.expiry_date < today
+        StockOnHand.earliest_expiry_date < today
     )
     expired_items = expired_query.count()
     expired_list = expired_query.limit(5).all()
@@ -441,9 +441,9 @@ def get_inventory_alerts(
     # Expiring within 7 days
     expiring_query = db.query(StockOnHand).filter(
         and_(
-            StockOnHand.expiry_date.isnot(None),
-            StockOnHand.expiry_date <= today + timedelta(days=7),
-            StockOnHand.expiry_date >= today
+            StockOnHand.earliest_expiry_date.isnot(None),
+            StockOnHand.earliest_expiry_date <= today + timedelta(days=7),
+            StockOnHand.earliest_expiry_date >= today
         )
     )
     expiring_items = expiring_query.count()
@@ -456,9 +456,9 @@ def get_inventory_alerts(
             
             alert = {
                 "product_id": stock.product_id,
-                "product_code": product.product_code if product else f"PROD-{stock.product_id}",
+                "product_code": product.sku if product else f"PROD-{stock.product_id}",
                 "product_name": product.name if product else "Unknown Product",
-                "current_stock": float(stock.quantity_available),
+                "current_stock": float(stock.available_quantity),
                 "location": stock.location,
                 "alert_type": alert_type
             }
@@ -467,7 +467,7 @@ def get_inventory_alerts(
                 alert["reorder_level"] = float(product.reorder_level or 0)
             
             if alert_type in ["expired", "expiring"]:
-                alert["expiry_date"] = stock.expiry_date.isoformat() if stock.expiry_date else None
+                alert["expiry_date"] = stock.earliest_expiry_date.isoformat() if stock.earliest_expiry_date else None
             
             alerts.append(alert)
         
@@ -506,8 +506,8 @@ def get_forecast_accuracy_summary(
     
     # Get forecasts that can be evaluated (have corresponding actuals)
     evaluable_forecasts = db.query(DemandForecast).filter(
-        DemandForecast.forecast_period.between(start_date, end_date),
-        DemandForecast.status == ForecastStatus.ACTIVE
+        DemandForecast.forecast_period_start.between(start_date, end_date),
+        DemandForecast.status == ForecastStatus.APPROVED
     ).all()
     
     if not evaluable_forecasts:
@@ -530,9 +530,9 @@ def get_forecast_accuracy_summary(
     
     for forecast in evaluable_forecasts:
         # Get actual sales for the forecast period
-        forecast_month_start = forecast.forecast_period.replace(day=1)
-        if forecast.forecast_period.month == 12:
-            forecast_month_end = forecast.forecast_period.replace(month=12, day=31)
+        forecast_month_start = forecast.forecast_period_start.replace(day=1)
+        if forecast.forecast_period_start.month == 12:
+            forecast_month_end = forecast.forecast_period_start.replace(month=12, day=31)
         else:
             forecast_month_end = (forecast_month_start + timedelta(days=32)).replace(day=1) - timedelta(days=1)
         
@@ -540,12 +540,12 @@ def get_forecast_accuracy_summary(
             func.sum(SalesActual.quantity_sold)
         ).filter(
             SalesActual.product_id == forecast.product_id,
-            SalesActual.sale_date.between(forecast_month_start, forecast_month_end)
+            SalesActual.transaction_date.between(forecast_month_start, forecast_month_end)
         ).scalar()
         
         if actual_sales is not None:
             actual_quantity = float(actual_sales)
-            forecast_quantity = float(forecast.forecast_quantity)
+            forecast_quantity = float(forecast.final_forecast)
             
             # Calculate accuracy (100 - MAPE)
             if actual_quantity > 0:
@@ -557,7 +557,7 @@ def get_forecast_accuracy_summary(
             accuracy_results.append(accuracy)
             
             # Track by method
-            method = forecast.method.value
+            method = forecast.forecast_method.value
             if method not in method_totals:
                 method_totals[method] = {'accuracies': [], 'count': 0}
             method_totals[method]['accuracies'].append(accuracy)
@@ -605,24 +605,24 @@ def get_key_performance_indicators(
     ytd_start = today.replace(month=1, day=1)
     
     # === REVENUE KPIs ===
-    current_month_revenue = db.query(func.sum(SalesActual.net_amount)).filter(
-        SalesActual.sale_date >= current_month_start
+    current_month_revenue = db.query(func.sum(SalesActual.net_sales_amount)).filter(
+        SalesActual.transaction_date >= current_month_start
     ).scalar() or 0
     
-    last_month_revenue = db.query(func.sum(SalesActual.net_amount)).filter(
-        SalesActual.sale_date.between(last_month_start, last_month_end)
+    last_month_revenue = db.query(func.sum(SalesActual.net_sales_amount)).filter(
+        SalesActual.transaction_date.between(last_month_start, last_month_end)
     ).scalar() or 0
     
-    ytd_revenue = db.query(func.sum(SalesActual.net_amount)).filter(
-        SalesActual.sale_date >= ytd_start
+    ytd_revenue = db.query(func.sum(SalesActual.net_sales_amount)).filter(
+        SalesActual.transaction_date >= ytd_start
     ).scalar() or 0
     
     # === INVENTORY KPIs ===
-    total_inventory_value = db.query(func.sum(StockOnHand.total_cost)).scalar() or 0
+    total_inventory_value = db.query(func.sum(StockOnHand.total_value)).scalar() or 0
     
     # Inventory turnover (annual sales / average inventory)
-    annual_sales = db.query(func.sum(SalesActual.net_amount)).filter(
-        SalesActual.sale_date >= today - timedelta(days=365)
+    annual_sales = db.query(func.sum(SalesActual.net_sales_amount)).filter(
+        SalesActual.transaction_date >= today - timedelta(days=365)
     ).scalar() or 0
     
     inventory_turnover = (float(annual_sales) / float(total_inventory_value)) if total_inventory_value > 0 else 0
@@ -635,7 +635,7 @@ def get_key_performance_indicators(
     
     # Order fulfillment rate (assuming stock-outs are unfulfilled)
     stock_out_products = db.query(StockOnHand.product_id).filter(
-        StockOnHand.quantity_available <= 0
+        StockOnHand.available_quantity <= 0
     ).distinct().count()
     
     total_active_products = db.query(Product).filter(
@@ -646,16 +646,16 @@ def get_key_performance_indicators(
     
     # Forecast accuracy (last 30 days)
     recent_forecasts = db.query(DemandForecast).filter(
-        DemandForecast.forecast_period >= today - timedelta(days=30),
-        DemandForecast.forecast_period <= today,
-        DemandForecast.status == ForecastStatus.ACTIVE
+        DemandForecast.forecast_period_start >= today - timedelta(days=30),
+        DemandForecast.forecast_period_start <= today,
+        DemandForecast.status == ForecastStatus.APPROVED
     ).count()
     
     # === AOP PERFORMANCE ===
     current_year = today.year
     current_aop = db.query(AnnualOperatingPlan).filter(
-        AnnualOperatingPlan.plan_year == current_year,
-        AnnualOperatingPlan.status == AOPStatus.ACTIVE
+        AnnualOperatingPlan.fiscal_year == current_year,
+        AnnualOperatingPlan.status == AOPStatus.APPROVED
     ).first()
     
     aop_achievement = 0
@@ -703,13 +703,13 @@ def get_system_health(
     today = datetime.now().date()
     
     # Data freshness checks
-    latest_sales = db.query(func.max(SalesActual.sale_date)).scalar()
+    latest_sales = db.query(func.max(SalesActual.transaction_date)).scalar()
     latest_stock_movement = db.query(func.max(StockMovement.movement_date)).scalar()
     latest_forecast = db.query(func.max(DemandForecast.created_at)).scalar()
     
     # Data quality checks
     products_without_cost = db.query(Product).filter(
-        Product.cost_price.is_(None),
+        Product.standard_cost.is_(None),
         Product.status == ProductStatus.ACTIVE
     ).count()
     
@@ -719,7 +719,7 @@ def get_system_health(
     ).count()
     
     stock_without_expiry = db.query(StockOnHand).join(Product).filter(
-        StockOnHand.expiry_date.is_(None),
+        StockOnHand.earliest_expiry_date.is_(None),
         Product.is_perishable == True
     ).count()
     

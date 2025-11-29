@@ -52,7 +52,7 @@ import {
 import { DataGrid, GridColDef, GridActionsCellItem } from '@mui/x-data-grid';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFnsV3';
 import { forecastingApi, productsApi } from '../../lib/api/apiClient';
 import toast from 'react-hot-toast';
 
@@ -298,7 +298,7 @@ export default function ForecastingPage() {
           key="delete"
           icon={<Assessment />}
           label="View Details"
-          onClick={() => toast.info('Forecast details coming soon')}
+          onClick={() => toast('Forecast details coming soon', { icon: 'ℹ️' })}
         />,
         <GridActionsCellItem
           key="delete"

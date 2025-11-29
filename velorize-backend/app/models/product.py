@@ -58,6 +58,7 @@ class Product(Base):
     # Supply chain attributes
     supplier_lead_time: Mapped[int] = mapped_column(Integer, nullable=True)  # Days
     safety_stock_days: Mapped[int] = mapped_column(Integer, default=7, nullable=False)
+    reorder_level: Mapped[Decimal] = mapped_column(Numeric(12, 4), nullable=True)  # Reorder point quantity
     
     # F&B specific attributes
     shelf_life_days: Mapped[int] = mapped_column(Integer, nullable=True)  # For perishable items

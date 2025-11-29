@@ -354,7 +354,7 @@ export default function MarketingPage() {
           key="edit"
           icon={<Edit />}
           label="Edit"
-          onClick={() => toast.info('Edit functionality coming soon')}
+          onClick={() => toast('Edit functionality coming soon', { icon: 'ℹ️' })}
         />,
         <GridActionsCellItem
           key="delete"

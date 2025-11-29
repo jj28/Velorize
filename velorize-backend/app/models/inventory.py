@@ -23,6 +23,23 @@ class StockStatus(str, Enum):
     QUARANTINE = "quarantine"
 
 
+class MovementType(str, Enum):
+    RECEIPT = "receipt"
+    ISSUE = "issue"
+    TRANSFER = "transfer"
+    ADJUSTMENT = "adjustment"
+    RETURN = "return"
+    PRODUCTION = "production"
+    SALE = "sale"
+    WASTAGE = "wastage"
+
+
+class MovementStatus(str, Enum):
+    PENDING = "pending"
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"
+
+
 class StockOnHand(Base):
     """Current stock levels by product and location."""
     
@@ -99,3 +116,36 @@ class StockOnHand(Base):
     
     def __repr__(self) -> str:
         return f"<StockOnHand(product_id={self.product_id}, location={self.location}, qty={self.quantity_on_hand})>"
+
+
+class StockMovement(Base):
+    """Track all inventory movements."""
+
+    __tablename__ = "stock_movements"
+
+    # Movement details
+    product_id: Mapped[int] = mapped_column(ForeignKey("products.id"), nullable=False, index=True)
+    movement_type: Mapped[MovementType] = mapped_column(SQLEnum(MovementType), nullable=False)
+    movement_date: Mapped[datetime] = mapped_column(DateTime, default=datetime.now, nullable=False, index=True)
+    status: Mapped[MovementStatus] = mapped_column(SQLEnum(MovementStatus), default=MovementStatus.PENDING, nullable=False)
+
+    # Quantity and location
+    quantity: Mapped[Decimal] = mapped_column(Numeric(12, 4), nullable=False)
+    from_location: Mapped[StockLocation] = mapped_column(SQLEnum(StockLocation), nullable=True)
+    to_location: Mapped[StockLocation] = mapped_column(SQLEnum(StockLocation), nullable=True)
+
+    # Cost tracking
+    unit_cost: Mapped[Decimal] = mapped_column(Numeric(12, 4), nullable=True)
+    total_cost: Mapped[Decimal] = mapped_column(Numeric(15, 2), nullable=True)
+
+    # Reference information
+    reference_number: Mapped[str] = mapped_column(String(100), nullable=True)
+    related_order_id: Mapped[int] = mapped_column(Integer, nullable=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+
+    # Additional details
+    reason: Mapped[str] = mapped_column(String(255), nullable=True)
+    notes: Mapped[str] = mapped_column(String(500), nullable=True)
+
+    def __repr__(self) -> str:
+        return f"<StockMovement(product_id={self.product_id}, type={self.movement_type}, qty={self.quantity})>"

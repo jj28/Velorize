@@ -13,65 +13,38 @@ import {
   Switch,
   FormControlLabel,
   Divider,
-  Alert,
   Avatar,
   List,
-  ListItem,
+  ListItemButton,
   ListItemIcon,
   ListItemText,
   ListItemSecondaryAction,
-  IconButton,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   Chip,
-  Tabs,
-  Tab,
   FormControl,
   InputLabel,
   Select,
   MenuItem,
+  Paper
 } from '@mui/material';
 import {
   Person,
   Security,
   Notifications,
   Business,
-  Storage,
-  Language,
-  Palette,
+  Settings as SettingsIcon,
   Edit,
   Delete,
   Add,
-  Visibility,
-  VisibilityOff,
-  Settings as SettingsIcon,
+  ChevronRight
 } from '@mui/icons-material';
 import { DataGrid, GridColDef, GridActionsCellItem } from '@mui/x-data-grid';
 import { useAuthStore } from '../../store/authStore';
 import toast from 'react-hot-toast';
-
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
-}
-
-function TabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`settings-tabpanel-${index}`}
-      aria-labelledby={`settings-tab-${index}`}
-      {...other}
-    >
-      {value === index && <Box sx={{ py: 3 }}>{children}</Box>}
-    </div>
-  );
-}
+import { AddUserDialog } from '@/components/settings/AddUserDialog';
 
 interface User {
   id: number;
@@ -87,7 +60,7 @@ interface User {
 
 export default function SettingsPage() {
   const { user } = useAuthStore();
-  const [activeTab, setActiveTab] = useState(0);
+  const [activeSection, setActiveSection] = useState('profile');
   const [showPassword, setShowPassword] = useState(false);
   const [userDialogOpen, setUserDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -198,9 +171,9 @@ export default function SettingsPage() {
     toast.success('Company information updated');
   };
 
-  const handleCreateUser = () => {
-    toast.success('User created successfully');
-    setUserDialogOpen(false);
+  const handleUserSuccess = () => {
+    // Reload users data here
+    setSelectedUser(null);
   };
 
   const handleEditUser = (user: User) => {
@@ -283,650 +256,620 @@ export default function SettingsPage() {
     },
   ];
 
+  const navItems = [
+    { id: 'profile', label: 'Profile', icon: <Person />, description: 'Personal information and contact details' },
+    { id: 'security', label: 'Security', icon: <Security />, description: 'Password and account security' },
+    { id: 'notifications', label: 'Notifications', icon: <Notifications />, description: 'Email and push notification preferences' },
+    { id: 'system', label: 'System', icon: <SettingsIcon />, description: 'Language, timezone, and display settings' },
+    { id: 'company', label: 'Company', icon: <Business />, description: 'Company details and business information' },
+  ];
+
+  if (user?.role === 'admin') {
+    navItems.push({ id: 'users', label: 'User Management', icon: <Person />, description: 'Manage users and permissions' });
+  }
+
   return (
-    <Container maxWidth="xl" sx={{ py: 3 }}>
-      {/* Header */}
+    <Container maxWidth="xl" sx={{ py: 4 }}>
       <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
+        <Typography variant="h4" component="h1" fontWeight={700} gutterBottom>
           Settings
         </Typography>
         <Typography variant="body1" color="text.secondary">
-          Manage your profile, preferences, and system configuration
+          Manage your account settings and preferences.
         </Typography>
       </Box>
 
-      {/* Settings Tabs */}
-      <Card>
-        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-          <Tabs value={activeTab} onChange={(e, newValue) => setActiveTab(newValue)}>
-            <Tab 
-              label={
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Person />
-                  Profile
-                </Box>
-              }
-            />
-            <Tab 
-              label={
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Security />
-                  Security
-                </Box>
-              }
-            />
-            <Tab 
-              label={
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Notifications />
-                  Notifications
-                </Box>
-              }
-            />
-            <Tab 
-              label={
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <SettingsIcon />
-                  System
-                </Box>
-              }
-            />
-            <Tab 
-              label={
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Business />
-                  Company
-                </Box>
-              }
-            />
-            {user?.role === 'admin' && (
-              <Tab 
-                label={
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Person />
-                    User Management
-                  </Box>
-                }
-              />
-            )}
-          </Tabs>
-        </Box>
-
-        {/* Profile Tab */}
-        <TabPanel value={activeTab} index={0}>
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={4}>
-              <Card>
-                <CardContent sx={{ textAlign: 'center' }}>
-                  <Avatar
-                    sx={{ 
-                      width: 120, 
-                      height: 120, 
-                      mx: 'auto', 
-                      mb: 2, 
-                      fontSize: '3rem',
-                      bgcolor: 'primary.main'
+      <Grid container spacing={4}>
+        {/* Sidebar Navigation */}
+        <Grid item xs={12} md={3}>
+          <Paper variant="outlined" sx={{ overflow: 'hidden', bgcolor: 'background.paper' }}>
+            <List component="nav" disablePadding>
+              {navItems.map((item) => (
+                <React.Fragment key={item.id}>
+                  <ListItemButton
+                    selected={activeSection === item.id}
+                    onClick={() => setActiveSection(item.id)}
+                    sx={{
+                      py: 2,
+                      borderLeft: activeSection === item.id ? '4px solid' : '4px solid transparent',
+                      borderColor: 'primary.main',
+                      bgcolor: activeSection === item.id ? 'primary.50' : 'transparent',
+                      '&.Mui-selected': {
+                        bgcolor: 'rgba(37, 99, 235, 0.08)',
+                      },
+                      '&.Mui-selected:hover': {
+                        bgcolor: 'rgba(37, 99, 235, 0.12)',
+                      }
                     }}
                   >
-                    {user?.first_name?.[0]}{user?.last_name?.[0]}
-                  </Avatar>
-                  <Typography variant="h6" gutterBottom>
-                    {user?.first_name} {user?.last_name}
-                  </Typography>
-                  <Chip 
-                    label={user?.role?.replace('_', ' ').toUpperCase()} 
-                    color={getRoleColor(user?.role || '')}
-                  />
-                </CardContent>
-              </Card>
-            </Grid>
+                    <ListItemIcon sx={{ color: activeSection === item.id ? 'primary.main' : 'text.secondary', minWidth: 40 }}>
+                      {item.icon}
+                    </ListItemIcon>
+                    <ListItemText 
+                      primary={item.label} 
+                      primaryTypographyProps={{ 
+                        fontWeight: activeSection === item.id ? 600 : 500,
+                        color: activeSection === item.id ? 'primary.main' : 'text.primary'
+                      }}
+                    />
+                    {activeSection === item.id && <ChevronRight color="primary" fontSize="small" />}
+                  </ListItemButton>
+                  <Divider />
+                </React.Fragment>
+              ))}
+            </List>
+          </Paper>
+        </Grid>
 
-            <Grid item xs={12} md={8}>
-              <Card>
-                <CardContent>
-                  <Typography variant="h6" gutterBottom>
-                    Personal Information
-                  </Typography>
-                  <Grid container spacing={2}>
-                    <Grid item xs={6}>
-                      <TextField
-                        fullWidth
-                        label="First Name"
-                        value={profileForm.first_name}
-                        onChange={(e) => setProfileForm({ ...profileForm, first_name: e.target.value })}
-                      />
+        {/* Content Area */}
+        <Grid item xs={12} md={9}>
+          {/* Header for Section */}
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="h5" fontWeight={700} gutterBottom>
+              {navItems.find(i => i.id === activeSection)?.label}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {navItems.find(i => i.id === activeSection)?.description}
+            </Typography>
+          </Box>
+
+          {/* Profile Section */}
+          {activeSection === 'profile' && (
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={4}>
+                <Card variant="outlined">
+                  <CardContent sx={{ textAlign: 'center', py: 4 }}>
+                    <Avatar
+                      sx={{ 
+                        width: 100, 
+                        height: 100, 
+                        mx: 'auto', 
+                        mb: 2, 
+                        fontSize: '2.5rem',
+                        bgcolor: 'primary.main'
+                      }}
+                    >
+                      {user?.first_name?.[0]}{user?.last_name?.[0]}
+                    </Avatar>
+                    <Typography variant="h6" fontWeight={600} gutterBottom>
+                      {user?.first_name} {user?.last_name}
+                    </Typography>
+                    <Chip 
+                      label={user?.role?.replace('_', ' ').toUpperCase()} 
+                      color={getRoleColor(user?.role || '')}
+                      size="small"
+                      sx={{ fontWeight: 600 }}
+                    />
+                    <Button variant="outlined" size="small" sx={{ mt: 2 }}>
+                      Change Photo
+                    </Button>
+                  </CardContent>
+                </Card>
+              </Grid>
+
+              <Grid item xs={12} md={8}>
+                <Card variant="outlined">
+                  <CardContent>
+                    <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ mb: 3 }}>
+                      Personal Details
+                    </Typography>
+                    <Grid container spacing={3}>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          fullWidth
+                          label="First Name"
+                          value={profileForm.first_name}
+                          onChange={(e) => setProfileForm({ ...profileForm, first_name: e.target.value })}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          fullWidth
+                          label="Last Name"
+                          value={profileForm.last_name}
+                          onChange={(e) => setProfileForm({ ...profileForm, last_name: e.target.value })}
+                        />
+                      </Grid>
+                      <Grid item xs={12}>
+                        <TextField
+                          fullWidth
+                          label="Email"
+                          type="email"
+                          value={profileForm.email}
+                          onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          fullWidth
+                          label="Phone Number"
+                          value={profileForm.phone}
+                          onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          fullWidth
+                          label="Department"
+                          value={profileForm.department}
+                          onChange={(e) => setProfileForm({ ...profileForm, department: e.target.value })}
+                        />
+                      </Grid>
+                      <Grid item xs={12}>
+                        <TextField
+                          fullWidth
+                          label="Position"
+                          value={profileForm.position}
+                          onChange={(e) => setProfileForm({ ...profileForm, position: e.target.value })}
+                        />
+                      </Grid>
+                      <Grid item xs={12}>
+                        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                          <Button variant="contained" onClick={handleSaveProfile}>
+                            Save Changes
+                          </Button>
+                        </Box>
+                      </Grid>
                     </Grid>
-                    <Grid item xs={6}>
-                      <TextField
-                        fullWidth
-                        label="Last Name"
-                        value={profileForm.last_name}
-                        onChange={(e) => setProfileForm({ ...profileForm, last_name: e.target.value })}
-                      />
+                  </CardContent>
+                </Card>
+              </Grid>
+            </Grid>
+          )}
+
+          {/* Security Section */}
+          {activeSection === 'security' && (
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={7}>
+                <Card variant="outlined">
+                  <CardContent>
+                    <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ mb: 3 }}>
+                      Change Password
+                    </Typography>
+                    <Grid container spacing={3}>
+                      <Grid item xs={12}>
+                        <TextField
+                          fullWidth
+                          label="Current Password"
+                          type={showPassword ? 'text' : 'password'}
+                          value={passwordForm.current_password}
+                          onChange={(e) => setPasswordForm({ ...passwordForm, current_password: e.target.value })}
+                        />
+                      </Grid>
+                      <Grid item xs={12}>
+                        <TextField
+                          fullWidth
+                          label="New Password"
+                          type={showPassword ? 'text' : 'password'}
+                          value={passwordForm.new_password}
+                          onChange={(e) => setPasswordForm({ ...passwordForm, new_password: e.target.value })}
+                          helperText="Minimum 8 characters"
+                        />
+                      </Grid>
+                      <Grid item xs={12}>
+                        <TextField
+                          fullWidth
+                          label="Confirm New Password"
+                          type={showPassword ? 'text' : 'password'}
+                          value={passwordForm.confirm_password}
+                          onChange={(e) => setPasswordForm({ ...passwordForm, confirm_password: e.target.value })}
+                        />
+                      </Grid>
+                      <Grid item xs={12}>
+                        <FormControlLabel
+                          control={
+                            <Switch
+                              checked={showPassword}
+                              onChange={(e) => setShowPassword(e.target.checked)}
+                            />
+                          }
+                          label="Show passwords"
+                        />
+                      </Grid>
+                      <Grid item xs={12}>
+                        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                          <Button variant="contained" onClick={handleChangePassword}>
+                            Update Password
+                          </Button>
+                        </Box>
+                      </Grid>
                     </Grid>
-                    <Grid item xs={12}>
-                      <TextField
-                        fullWidth
-                        label="Email"
-                        type="email"
-                        value={profileForm.email}
-                        onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
-                      />
-                    </Grid>
-                    <Grid item xs={6}>
-                      <TextField
-                        fullWidth
-                        label="Phone"
-                        value={profileForm.phone}
-                        onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })}
-                      />
-                    </Grid>
-                    <Grid item xs={6}>
-                      <TextField
-                        fullWidth
-                        label="Department"
-                        value={profileForm.department}
-                        onChange={(e) => setProfileForm({ ...profileForm, department: e.target.value })}
-                      />
-                    </Grid>
-                    <Grid item xs={12}>
-                      <TextField
-                        fullWidth
-                        label="Position"
-                        value={profileForm.position}
-                        onChange={(e) => setProfileForm({ ...profileForm, position: e.target.value })}
-                      />
-                    </Grid>
-                    <Grid item xs={12}>
-                      <Button variant="contained" onClick={handleSaveProfile}>
-                        Save Profile
-                      </Button>
-                    </Grid>
+                  </CardContent>
+                </Card>
+              </Grid>
+
+              <Grid item xs={12} md={5}>
+                <Card variant="outlined">
+                  <CardContent>
+                    <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ mb: 2 }}>
+                      Login Activity
+                    </Typography>
+                    <List disablePadding>
+                      <ListItemButton disableGutters divider>
+                        <ListItemText
+                          primary="Last Login"
+                          secondary={user?.created_at ? new Date(user.created_at).toLocaleString() : 'Never'}
+                          primaryTypographyProps={{ variant: 'body2', fontWeight: 500 }}
+                        />
+                      </ListItemButton>
+                      <ListItemButton disableGutters divider>
+                        <ListItemText
+                          primary="Account Created"
+                          secondary={user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'Unknown'}
+                          primaryTypographyProps={{ variant: 'body2', fontWeight: 500 }}
+                        />
+                      </ListItemButton>
+                      <ListItemButton disableGutters>
+                        <ListItemText
+                          primary="Two-Factor Authentication"
+                          secondary="Not enabled"
+                          primaryTypographyProps={{ variant: 'body2', fontWeight: 500 }}
+                        />
+                        <ListItemSecondaryAction>
+                          <Button size="small">Enable</Button>
+                        </ListItemSecondaryAction>
+                      </ListItemButton>
+                    </List>
+                  </CardContent>
+                </Card>
+              </Grid>
+            </Grid>
+          )}
+
+          {/* Notifications Section */}
+          {activeSection === 'notifications' && (
+            <Card variant="outlined">
+              <CardContent>
+                <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ mb: 3 }}>
+                  Notification Preferences
+                </Typography>
+                <Grid container spacing={4}>
+                  <Grid item xs={12} md={6}>
+                    <Typography variant="subtitle2" color="primary" gutterBottom>
+                      Channels
+                    </Typography>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={notificationSettings.email_notifications}
+                          onChange={(e) => setNotificationSettings({ 
+                            ...notificationSettings, 
+                            email_notifications: e.target.checked 
+                          })}
+                        />
+                      }
+                      label="Email notifications"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={notificationSettings.push_notifications}
+                          onChange={(e) => setNotificationSettings({ 
+                            ...notificationSettings, 
+                            push_notifications: e.target.checked 
+                          })}
+                        />
+                      }
+                      label="Browser push notifications"
+                    />
                   </Grid>
-                </CardContent>
-              </Card>
-            </Grid>
-          </Grid>
-        </TabPanel>
 
-        {/* Security Tab */}
-        <TabPanel value={activeTab} index={1}>
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
-              <Card>
-                <CardContent>
-                  <Typography variant="h6" gutterBottom>
-                    Change Password
-                  </Typography>
-                  <Grid container spacing={2}>
-                    <Grid item xs={12}>
-                      <TextField
-                        fullWidth
-                        label="Current Password"
-                        type={showPassword ? 'text' : 'password'}
-                        value={passwordForm.current_password}
-                        onChange={(e) => setPasswordForm({ ...passwordForm, current_password: e.target.value })}
-                      />
-                    </Grid>
-                    <Grid item xs={12}>
-                      <TextField
-                        fullWidth
-                        label="New Password"
-                        type={showPassword ? 'text' : 'password'}
-                        value={passwordForm.new_password}
-                        onChange={(e) => setPasswordForm({ ...passwordForm, new_password: e.target.value })}
-                      />
-                    </Grid>
-                    <Grid item xs={12}>
-                      <TextField
-                        fullWidth
-                        label="Confirm New Password"
-                        type={showPassword ? 'text' : 'password'}
-                        value={passwordForm.confirm_password}
-                        onChange={(e) => setPasswordForm({ ...passwordForm, confirm_password: e.target.value })}
-                      />
-                    </Grid>
-                    <Grid item xs={12}>
+                  <Grid item xs={12} md={6}>
+                    <Typography variant="subtitle2" color="primary" gutterBottom>
+                      Alert Types
+                    </Typography>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                       <FormControlLabel
                         control={
                           <Switch
-                            checked={showPassword}
-                            onChange={(e) => setShowPassword(e.target.checked)}
+                            checked={notificationSettings.inventory_alerts}
+                            onChange={(e) => setNotificationSettings({ 
+                              ...notificationSettings, 
+                              inventory_alerts: e.target.checked 
+                            })}
                           />
                         }
-                        label="Show passwords"
+                        label="Inventory alerts (Low stock, Stockouts)"
                       />
-                    </Grid>
-                    <Grid item xs={12}>
-                      <Button variant="contained" onClick={handleChangePassword}>
-                        Update Password
-                      </Button>
-                    </Grid>
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={notificationSettings.forecast_alerts}
+                            onChange={(e) => setNotificationSettings({ 
+                              ...notificationSettings, 
+                              forecast_alerts: e.target.checked 
+                            })}
+                          />
+                        }
+                        label="Forecast updates & accuracy alerts"
+                      />
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={notificationSettings.marketing_updates}
+                            onChange={(e) => setNotificationSettings({ 
+                              ...notificationSettings, 
+                              marketing_updates: e.target.checked 
+                            })}
+                          />
+                        }
+                        label="Marketing campaign updates"
+                      />
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={notificationSettings.system_maintenance}
+                            onChange={(e) => setNotificationSettings({ 
+                              ...notificationSettings, 
+                              system_maintenance: e.target.checked 
+                            })}
+                          />
+                        }
+                        label="System maintenance announcements"
+                      />
+                    </Box>
                   </Grid>
-                </CardContent>
-              </Card>
-            </Grid>
 
-            <Grid item xs={12} md={6}>
-              <Card>
-                <CardContent>
-                  <Typography variant="h6" gutterBottom>
-                    Security Information
-                  </Typography>
-                  <List>
-                    <ListItem>
-                      <ListItemText
-                        primary="Last Login"
-                        secondary={user?.created_at ? new Date(user.created_at).toLocaleString() : 'Never'}
-                      />
-                    </ListItem>
-                    <ListItem>
-                      <ListItemText
-                        primary="Account Created"
-                        secondary={user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'Unknown'}
-                      />
-                    </ListItem>
-                    <ListItem>
-                      <ListItemText
-                        primary="Two-Factor Authentication"
-                        secondary="Not enabled"
-                      />
-                      <ListItemSecondaryAction>
-                        <Button size="small" variant="outlined">
-                          Enable
-                        </Button>
-                      </ListItemSecondaryAction>
-                    </ListItem>
-                  </List>
-                </CardContent>
-              </Card>
-            </Grid>
-          </Grid>
-        </TabPanel>
+                  <Grid item xs={12}>
+                    <Divider sx={{ mb: 2 }} />
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                      <Button variant="contained" onClick={handleSaveNotifications}>
+                        Save Preferences
+                      </Button>
+                    </Box>
+                  </Grid>
+                </Grid>
+              </CardContent>
+            </Card>
+          )}
 
-        {/* Notifications Tab */}
-        <TabPanel value={activeTab} index={2}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Notification Preferences
-              </Typography>
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
-                  <Typography variant="subtitle1" gutterBottom>
-                    General Notifications
-                  </Typography>
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={notificationSettings.email_notifications}
-                        onChange={(e) => setNotificationSettings({ 
-                          ...notificationSettings, 
-                          email_notifications: e.target.checked 
-                        })}
-                      />
-                    }
-                    label="Email notifications"
-                  />
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={notificationSettings.push_notifications}
-                        onChange={(e) => setNotificationSettings({ 
-                          ...notificationSettings, 
-                          push_notifications: e.target.checked 
-                        })}
-                      />
-                    }
-                    label="Browser push notifications"
-                  />
-                </Grid>
+          {/* System Section */}
+          {activeSection === 'system' && (
+            <Card variant="outlined">
+              <CardContent>
+                <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ mb: 3 }}>
+                  System Configuration
+                </Typography>
+                <Grid container spacing={3}>
+                  <Grid item xs={12} md={6}>
+                    <FormControl fullWidth>
+                      <InputLabel>Language</InputLabel>
+                      <Select
+                        value={systemSettings.language}
+                        onChange={(e) => setSystemSettings({ ...systemSettings, language: e.target.value })}
+                        label="Language"
+                      >
+                        <MenuItem value="en">English</MenuItem>
+                        <MenuItem value="ms">Bahasa Malaysia</MenuItem>
+                        <MenuItem value="zh">中文</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
 
-                <Grid item xs={12} md={6}>
-                  <Typography variant="subtitle1" gutterBottom>
-                    System Alerts
-                  </Typography>
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={notificationSettings.inventory_alerts}
-                        onChange={(e) => setNotificationSettings({ 
-                          ...notificationSettings, 
-                          inventory_alerts: e.target.checked 
-                        })}
-                      />
-                    }
-                    label="Inventory alerts"
-                  />
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={notificationSettings.forecast_alerts}
-                        onChange={(e) => setNotificationSettings({ 
-                          ...notificationSettings, 
-                          forecast_alerts: e.target.checked 
-                        })}
-                      />
-                    }
-                    label="Forecast alerts"
-                  />
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={notificationSettings.marketing_updates}
-                        onChange={(e) => setNotificationSettings({ 
-                          ...notificationSettings, 
-                          marketing_updates: e.target.checked 
-                        })}
-                      />
-                    }
-                    label="Marketing updates"
-                  />
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={notificationSettings.system_maintenance}
-                        onChange={(e) => setNotificationSettings({ 
-                          ...notificationSettings, 
-                          system_maintenance: e.target.checked 
-                        })}
-                      />
-                    }
-                    label="System maintenance"
-                  />
-                </Grid>
+                  <Grid item xs={12} md={6}>
+                    <FormControl fullWidth>
+                      <InputLabel>Timezone</InputLabel>
+                      <Select
+                        value={systemSettings.timezone}
+                        onChange={(e) => setSystemSettings({ ...systemSettings, timezone: e.target.value })}
+                        label="Timezone"
+                      >
+                        <MenuItem value="Asia/Kuala_Lumpur">Asia/Kuala Lumpur</MenuItem>
+                        <MenuItem value="Asia/Singapore">Asia/Singapore</MenuItem>
+                        <MenuItem value="Asia/Bangkok">Asia/Bangkok</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
 
-                <Grid item xs={12}>
-                  <Button variant="contained" onClick={handleSaveNotifications}>
-                    Save Notification Settings
-                  </Button>
-                </Grid>
-              </Grid>
-            </CardContent>
-          </Card>
-        </TabPanel>
+                  <Grid item xs={12} md={6}>
+                    <FormControl fullWidth>
+                      <InputLabel>Currency</InputLabel>
+                      <Select
+                        value={systemSettings.currency}
+                        onChange={(e) => setSystemSettings({ ...systemSettings, currency: e.target.value })}
+                        label="Currency"
+                      >
+                        <MenuItem value="MYR">Malaysian Ringgit (MYR)</MenuItem>
+                        <MenuItem value="SGD">Singapore Dollar (SGD)</MenuItem>
+                        <MenuItem value="USD">US Dollar (USD)</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
 
-        {/* System Tab */}
-        <TabPanel value={activeTab} index={3}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                System Preferences
-              </Typography>
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>Language</InputLabel>
-                    <Select
-                      value={systemSettings.language}
-                      onChange={(e) => setSystemSettings({ ...systemSettings, language: e.target.value })}
-                      label="Language"
-                    >
-                      <MenuItem value="en">English</MenuItem>
-                      <MenuItem value="ms">Bahasa Malaysia</MenuItem>
-                      <MenuItem value="zh">中文</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
+                  <Grid item xs={12} md={6}>
+                    <FormControl fullWidth>
+                      <InputLabel>Date Format</InputLabel>
+                      <Select
+                        value={systemSettings.date_format}
+                        onChange={(e) => setSystemSettings({ ...systemSettings, date_format: e.target.value })}
+                        label="Date Format"
+                      >
+                        <MenuItem value="DD/MM/YYYY">DD/MM/YYYY</MenuItem>
+                        <MenuItem value="MM/DD/YYYY">MM/DD/YYYY</MenuItem>
+                        <MenuItem value="YYYY-MM-DD">YYYY-MM-DD</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
 
-                <Grid item xs={12} md={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>Timezone</InputLabel>
-                    <Select
-                      value={systemSettings.timezone}
-                      onChange={(e) => setSystemSettings({ ...systemSettings, timezone: e.target.value })}
-                      label="Timezone"
-                    >
-                      <MenuItem value="Asia/Kuala_Lumpur">Asia/Kuala Lumpur</MenuItem>
-                      <MenuItem value="Asia/Singapore">Asia/Singapore</MenuItem>
-                      <MenuItem value="Asia/Bangkok">Asia/Bangkok</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
+                  <Grid item xs={12} md={6}>
+                    <FormControl fullWidth>
+                      <InputLabel>Theme</InputLabel>
+                      <Select
+                        value={systemSettings.theme}
+                        onChange={(e) => setSystemSettings({ ...systemSettings, theme: e.target.value })}
+                        label="Theme"
+                      >
+                        <MenuItem value="light">Light</MenuItem>
+                        <MenuItem value="dark">Dark</MenuItem>
+                        <MenuItem value="auto">Auto</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
 
-                <Grid item xs={12} md={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>Currency</InputLabel>
-                    <Select
-                      value={systemSettings.currency}
-                      onChange={(e) => setSystemSettings({ ...systemSettings, currency: e.target.value })}
-                      label="Currency"
-                    >
-                      <MenuItem value="MYR">Malaysian Ringgit (MYR)</MenuItem>
-                      <MenuItem value="SGD">Singapore Dollar (SGD)</MenuItem>
-                      <MenuItem value="USD">US Dollar (USD)</MenuItem>
-                    </Select>
-                  </FormControl>
+                  <Grid item xs={12}>
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                      <Button variant="contained" onClick={handleSaveSystem}>
+                        Save Configuration
+                      </Button>
+                    </Box>
+                  </Grid>
                 </Grid>
+              </CardContent>
+            </Card>
+          )}
 
-                <Grid item xs={12} md={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>Date Format</InputLabel>
-                    <Select
-                      value={systemSettings.date_format}
-                      onChange={(e) => setSystemSettings({ ...systemSettings, date_format: e.target.value })}
-                      label="Date Format"
-                    >
-                      <MenuItem value="DD/MM/YYYY">DD/MM/YYYY</MenuItem>
-                      <MenuItem value="MM/DD/YYYY">MM/DD/YYYY</MenuItem>
-                      <MenuItem value="YYYY-MM-DD">YYYY-MM-DD</MenuItem>
-                    </Select>
-                  </FormControl>
+          {/* Company Section */}
+          {activeSection === 'company' && (
+            <Card variant="outlined">
+              <CardContent>
+                <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ mb: 3 }}>
+                  Company Details
+                </Typography>
+                <Grid container spacing={3}>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Company Name"
+                      value={companySettings.company_name}
+                      onChange={(e) => setCompanySettings({ ...companySettings, company_name: e.target.value })}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Business Registration Number"
+                      value={companySettings.business_registration}
+                      onChange={(e) => setCompanySettings({ ...companySettings, business_registration: e.target.value })}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Tax ID / GST Number"
+                      value={companySettings.tax_id}
+                      onChange={(e) => setCompanySettings({ ...companySettings, tax_id: e.target.value })}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Phone"
+                      value={companySettings.phone}
+                      onChange={(e) => setCompanySettings({ ...companySettings, phone: e.target.value })}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label="Address"
+                      multiline
+                      rows={3}
+                      value={companySettings.address}
+                      onChange={(e) => setCompanySettings({ ...companySettings, address: e.target.value })}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Email"
+                      type="email"
+                      value={companySettings.email}
+                      onChange={(e) => setCompanySettings({ ...companySettings, email: e.target.value })}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Website"
+                      value={companySettings.website}
+                      onChange={(e) => setCompanySettings({ ...companySettings, website: e.target.value })}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                      <Button variant="contained" onClick={handleSaveCompany}>
+                        Save Company Details
+                      </Button>
+                    </Box>
+                  </Grid>
                 </Grid>
+              </CardContent>
+            </Card>
+          )}
 
-                <Grid item xs={12} md={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>Theme</InputLabel>
-                    <Select
-                      value={systemSettings.theme}
-                      onChange={(e) => setSystemSettings({ ...systemSettings, theme: e.target.value })}
-                      label="Theme"
-                    >
-                      <MenuItem value="light">Light</MenuItem>
-                      <MenuItem value="dark">Dark</MenuItem>
-                      <MenuItem value="auto">Auto</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
-
-                <Grid item xs={12}>
-                  <Button variant="contained" onClick={handleSaveSystem}>
-                    Save System Settings
-                  </Button>
-                </Grid>
-              </Grid>
-            </CardContent>
-          </Card>
-        </TabPanel>
-
-        {/* Company Tab */}
-        <TabPanel value={activeTab} index={4}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Company Information
-              </Typography>
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Company Name"
-                    value={companySettings.company_name}
-                    onChange={(e) => setCompanySettings({ ...companySettings, company_name: e.target.value })}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Business Registration Number"
-                    value={companySettings.business_registration}
-                    onChange={(e) => setCompanySettings({ ...companySettings, business_registration: e.target.value })}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Tax ID / GST Number"
-                    value={companySettings.tax_id}
-                    onChange={(e) => setCompanySettings({ ...companySettings, tax_id: e.target.value })}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Phone"
-                    value={companySettings.phone}
-                    onChange={(e) => setCompanySettings({ ...companySettings, phone: e.target.value })}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="Address"
-                    multiline
-                    rows={2}
-                    value={companySettings.address}
-                    onChange={(e) => setCompanySettings({ ...companySettings, address: e.target.value })}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Email"
-                    type="email"
-                    value={companySettings.email}
-                    onChange={(e) => setCompanySettings({ ...companySettings, email: e.target.value })}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Website"
-                    value={companySettings.website}
-                    onChange={(e) => setCompanySettings({ ...companySettings, website: e.target.value })}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <Button variant="contained" onClick={handleSaveCompany}>
-                    Save Company Information
-                  </Button>
-                </Grid>
-              </Grid>
-            </CardContent>
-          </Card>
-        </TabPanel>
-
-        {/* User Management Tab - Only for admins */}
-        {user?.role === 'admin' && (
-          <TabPanel value={activeTab} index={5}>
-            <Grid container spacing={3}>
-              <Grid item xs={12}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                  <Typography variant="h6">
-                    User Management
+          {/* User Management Section */}
+          {activeSection === 'users' && user?.role === 'admin' && (
+            <Card variant="outlined">
+              <CardContent>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                  <Typography variant="subtitle1" fontWeight={600}>
+                    Users & Permissions
                   </Typography>
                   <Button
                     variant="contained"
                     startIcon={<Add />}
-                    onClick={() => setUserDialogOpen(true)}
+                    onClick={() => {
+                      setSelectedUser(null);
+                      setUserDialogOpen(true);
+                    }}
                   >
                     Add User
                   </Button>
                 </Box>
 
-                <Card>
-                  <CardContent>
-                    <Box sx={{ height: 500, width: '100%' }}>
-                      <DataGrid
-                        rows={users}
-                        columns={userColumns}
-                        pageSize={25}
-                        rowsPerPageOptions={[10, 25, 50]}
-                        disableSelectionOnClick
-                        sx={{
-                          border: 0,
-                          '& .MuiDataGrid-cell:focus': {
-                            outline: 'none',
-                          },
-                        }}
-                      />
-                    </Box>
-                  </CardContent>
-                </Card>
-              </Grid>
-            </Grid>
-          </TabPanel>
-        )}
-      </Card>
+                <Box sx={{ height: 500, width: '100%' }}>
+                  <DataGrid
+                    rows={users}
+                    columns={userColumns}
+                    initialState={{
+                      pagination: { paginationModel: { pageSize: 10 } },
+                    }}
+                    pageSizeOptions={[10, 25, 50]}
+                    disableSelectionOnClick
+                    sx={{
+                      border: 0,
+                      '& .MuiDataGrid-cell:focus': {
+                        outline: 'none',
+                      },
+                    }}
+                  />
+                </Box>
+              </CardContent>
+            </Card>
+          )}
+        </Grid>
+      </Grid>
 
       {/* User Dialog */}
-      <Dialog open={userDialogOpen} onClose={() => setUserDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>
-          {selectedUser ? 'Edit User' : 'Add New User'}
-        </DialogTitle>
-        <DialogContent>
-          <Grid container spacing={2} sx={{ mt: 1 }}>
-            <Grid item xs={6}>
-              <TextField
-                fullWidth
-                label="First Name"
-                defaultValue={selectedUser?.first_name || ''}
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <TextField
-                fullWidth
-                label="Last Name"
-                defaultValue={selectedUser?.last_name || ''}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Email"
-                type="email"
-                defaultValue={selectedUser?.email || ''}
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <TextField
-                fullWidth
-                label="Username"
-                defaultValue={selectedUser?.username || ''}
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <FormControl fullWidth>
-                <InputLabel>Role</InputLabel>
-                <Select
-                  defaultValue={selectedUser?.role || 'viewer'}
-                  label="Role"
-                >
-                  <MenuItem value="admin">Admin</MenuItem>
-                  <MenuItem value="sop_leader">S&OP Leader</MenuItem>
-                  <MenuItem value="viewer">Viewer</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            {!selectedUser && (
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Temporary Password"
-                  type="password"
-                  helperText="User will be required to change password on first login"
-                />
-              </Grid>
-            )}
-          </Grid>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setUserDialogOpen(false)}>Cancel</Button>
-          <Button onClick={handleCreateUser} variant="contained">
-            {selectedUser ? 'Update' : 'Create'} User
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <AddUserDialog
+        open={userDialogOpen}
+        onClose={() => {
+          setUserDialogOpen(false);
+          setSelectedUser(null);
+        }}
+        onSuccess={handleUserSuccess}
+        user={selectedUser}
+      />
     </Container>
   );
 }

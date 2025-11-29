@@ -30,6 +30,10 @@ class AOPCategory(str, Enum):
     INVENTORY_TURNOVER = "inventory_turnover"
 
 
+# Aliases for backward compatibility
+PlanPeriod = AOPPeriod
+
+
 class AOPTarget(Base):
     """Annual Operating Plan (AOP) targets and performance tracking."""
     
@@ -161,3 +165,7 @@ class AOPTarget(Base):
     
     def __repr__(self) -> str:
         return f"<AOPTarget(fy={self.fiscal_year}, category={self.target_category}, target={self.target_name})>"
+
+
+# Alias for backward compatibility
+AnnualOperatingPlan = AOPTarget

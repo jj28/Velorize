@@ -1,12 +1,13 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Container, Typography, Box, Alert } from '@mui/material';
+import { Container, Typography, Box, Alert, Grid, Card, CardContent, ToggleButtonGroup, ToggleButton, Slider, Divider } from '@mui/material';
 import { useAuthStore } from '../../store/authStore';
 import { useRouter } from 'next/navigation';
-import { DashboardOverview } from '../../components/dashboard/DashboardOverview';
 import { SalesTrendChart } from '../../components/dashboard/SalesTrendChart';
+import { StatCard } from '../../components/dashboard/StatCard';
 import { dashboardApi } from '../../lib/api/apiClient';
+import { Inventory, Warning, Layers, Timeline, ViewModule, ViewList } from '@mui/icons-material';
 
 interface DashboardData {
   sales: {
@@ -52,6 +53,11 @@ export default function DashboardPage() {
   const [salesTrends, setSalesTrends] = useState<SalesData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Projection Parameters State
+  const [coverageUnit, setCoverageUnit] = useState('days');
+  const [excessThreshold, setExcessThreshold] = useState<number>(60);
+  const [calcBasis, setCalcBasis] = useState('next-month');
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -96,30 +102,6 @@ export default function DashboardPage() {
           alerts: [],
         };
 
-        // Add sample alerts based on inventory data
-        const alerts = [];
-        if (overview.inventory_metrics?.low_stock_items > 0) {
-          alerts.push({
-            id: 'low-stock',
-            type: 'warning' as const,
-            title: 'Low Stock Alert',
-            message: `${overview.inventory_metrics.low_stock_items} items below reorder level`,
-            timestamp: new Date(),
-          });
-        }
-
-        if (overview.inventory_metrics?.expired_items > 0) {
-          alerts.push({
-            id: 'expired',
-            type: 'error' as const,
-            title: 'Expired Inventory',
-            message: `${overview.inventory_metrics.expired_items} items have expired`,
-            timestamp: new Date(),
-          });
-        }
-
-        transformedData.alerts = alerts;
-
         setDashboardData(transformedData);
         setSalesTrends(trends.trends || []);
       } catch (err) {
@@ -148,22 +130,7 @@ export default function DashboardPage() {
             coverage: 72,
             activeForecasts: 24,
           },
-          alerts: [
-            {
-              id: '1',
-              type: 'warning',
-              title: 'Low Stock Alert',
-              message: '12 items below reorder level',
-              timestamp: new Date(),
-            },
-            {
-              id: '2',
-              type: 'error',
-              title: 'Expired Inventory',
-              message: '3 items have expired and need attention',
-              timestamp: new Date(),
-            },
-          ],
+          alerts: [],
         });
 
         // Sample sales trend data
@@ -189,29 +156,23 @@ export default function DashboardPage() {
     return null;
   }
 
-  const getRoleLabel = (role: string) => {
-    switch (role) {
-      case 'admin':
-        return 'Administrator';
-      case 'sop_leader':
-        return 'S&OP Leader';
-      case 'viewer':
-        return 'Viewer';
-      default:
-        return role;
-    }
-  };
-
   return (
-    <Container maxWidth="xl" sx={{ py: 3 }}>
+    <Container maxWidth="xl" sx={{ py: 4 }}>
       {/* Header */}
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          Welcome back, {user.first_name}!
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
-          Here's your S&OP dashboard overview for today
-        </Typography>
+      <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Box>
+          <Typography variant="h4" component="h1" fontWeight={700} gutterBottom sx={{ color: 'text.primary' }}>
+            Velorize
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            Welcome back, {user.first_name}. Here is your inventory overview.
+          </Typography>
+        </Box>
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <Typography variant="caption" sx={{ bgcolor: 'white', px: 1, py: 0.5, borderRadius: 1, border: '1px solid #EAECF0' }}>
+            v1.1.0
+          </Typography>
+        </Box>
       </Box>
 
       {/* Error Alert */}
@@ -221,39 +182,153 @@ export default function DashboardPage() {
         </Alert>
       )}
 
-      {/* Dashboard Overview */}
+      {/* Stats Grid */}
       {dashboardData && (
-        <Box sx={{ mb: 4 }}>
-          <DashboardOverview data={dashboardData} loading={loading} />
-        </Box>
+        <Grid container spacing={3} sx={{ mb: 4 }}>
+          <Grid item xs={12} md={3}>
+            <StatCard
+              title="TOTAL STOCK ON HAND"
+              value={`RM ${(dashboardData.inventory.totalValue / 1000).toFixed(1)}k`}
+              icon={Inventory}
+              color="primary"
+              subtitle="Total inventory value"
+            />
+          </Grid>
+          <Grid item xs={12} md={3}>
+            <StatCard
+              title="CRITICAL LOW STOCK"
+              value={`${dashboardData.inventory.lowStock} SKUs`}
+              icon={Warning}
+              color="error"
+              subtitle="Below reorder point"
+              trend={{ value: 12, isPositive: false }}
+            />
+          </Grid>
+          <Grid item xs={12} md={3}>
+            <StatCard
+              title="EXCESS INVENTORY"
+              value={`${dashboardData.inventory.expired} SKUs`}
+              icon={Layers}
+              color="warning"
+              subtitle="Overstock / Expired"
+              trend={{ value: 5, isPositive: true }}
+            />
+          </Grid>
+          <Grid item xs={12} md={3}>
+            <StatCard
+              title="STOCK HEALTH"
+              value={`${dashboardData.forecasting.accuracy}%`}
+              icon={Timeline}
+              color="success"
+              subtitle="Forecast Accuracy"
+              trend={{ value: 2.4, isPositive: true }}
+            />
+          </Grid>
+        </Grid>
       )}
+
+      {/* Projection Parameters */}
+      <Card sx={{ mb: 4, p: 1 }}>
+        <CardContent>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
+            <Typography variant="h6" fontWeight={600}>Projection Parameters</Typography>
+          </Box>
+          
+          <Grid container spacing={4} alignItems="flex-end">
+            <Grid item xs={12} md={4}>
+              <Typography variant="caption" color="text.secondary" display="block" mb={1} fontWeight={600} sx={{ textTransform: 'uppercase' }}>
+                Coverage Unit
+              </Typography>
+              <ToggleButtonGroup
+                value={coverageUnit}
+                exclusive
+                onChange={(e, v) => v && setCoverageUnit(v)}
+                size="small"
+                fullWidth
+                sx={{ 
+                  bgcolor: 'background.paper',
+                  '& .MuiToggleButton-root': { 
+                    textTransform: 'none', 
+                    px: 3,
+                    border: '1px solid #EAECF0'
+                  },
+                  '& .Mui-selected': {
+                    bgcolor: 'primary.light !important',
+                    color: 'white !important',
+                    border: '1px solid transparent'
+                  }
+                }}
+              >
+                <ToggleButton value="days">Days</ToggleButton>
+                <ToggleButton value="weeks">Weeks</ToggleButton>
+                <ToggleButton value="months">Months</ToggleButton>
+              </ToggleButtonGroup>
+              <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                Unit for displaying stock coverage.
+              </Typography>
+            </Grid>
+
+            <Grid item xs={12} md={4}>
+              <Typography variant="caption" color="text.secondary" display="block" mb={1} fontWeight={600} sx={{ textTransform: 'uppercase' }}>
+                Excess Threshold (Days)
+              </Typography>
+              <Box sx={{ px: 2, py: 0.5, bgcolor: '#F9FAFB', borderRadius: 2, border: '1px solid #EAECF0' }}>
+                <Slider
+                  value={excessThreshold}
+                  onChange={(e, v) => setExcessThreshold(v as number)}
+                  valueLabelDisplay="auto"
+                  min={30}
+                  max={180}
+                  step={15}
+                  sx={{ color: 'text.secondary' }}
+                />
+              </Box>
+              <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                Items with coverage &gt; {excessThreshold} days are flagged.
+              </Typography>
+            </Grid>
+
+            <Grid item xs={12} md={4}>
+              <Typography variant="caption" color="text.secondary" display="block" mb={1} fontWeight={600} sx={{ textTransform: 'uppercase' }}>
+                Calculation Basis
+              </Typography>
+              <ToggleButtonGroup
+                value={calcBasis}
+                exclusive
+                onChange={(e, v) => v && setCalcBasis(v)}
+                size="small"
+                fullWidth
+                sx={{ 
+                  bgcolor: 'background.paper',
+                  '& .MuiToggleButton-root': { 
+                    textTransform: 'none', 
+                    px: 3,
+                    border: '1px solid #EAECF0'
+                  },
+                  '& .Mui-selected': {
+                    bgcolor: 'primary.light !important',
+                    color: 'white !important',
+                    border: '1px solid transparent'
+                  }
+                }}
+              >
+                <ToggleButton value="next-month">Next Month</ToggleButton>
+                <ToggleButton value="avg-3-month">3-Month Avg</ToggleButton>
+              </ToggleButtonGroup>
+              <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                Denominator for coverage formula.
+              </Typography>
+            </Grid>
+          </Grid>
+        </CardContent>
+      </Card>
 
       {/* Sales Trend Chart */}
       <Box sx={{ mb: 4 }}>
+        <Typography variant="h6" fontWeight={600} gutterBottom>Sales Trend</Typography>
         <SalesTrendChart data={salesTrends} loading={loading} />
       </Box>
-
-      {/* Phase 2 Complete Status */}
-      <Alert severity="success" sx={{ mt: 4 }}>
-        <Typography variant="h6" gutterBottom>
-          🎉 Phase 2 Complete - Full S&OP Backend Implemented!
-        </Typography>
-        <Typography variant="body2" paragraph>
-          Your Velorize platform now includes:
-        </Typography>
-        <Box component="ul" sx={{ pl: 2, mb: 2 }}>
-          <li>Complete master data management (Products, Customers, Suppliers)</li>
-          <li>Advanced inventory management with BOM and stock tracking</li>
-          <li>Comprehensive analytics engine with ABC/XYZ analysis</li>
-          <li>AI-powered demand forecasting with multiple algorithms</li>
-          <li>Inventory optimization with EOQ and reorder point calculations</li>
-          <li>Marketing calendar and Annual Operating Plan management</li>
-          <li>Real-time dashboard with KPIs and system health monitoring</li>
-        </Box>
-        <Typography variant="body2" color="text.secondary">
-          Now building the complete frontend interface for your S&OP operations!
-        </Typography>
-      </Alert>
+      
     </Container>
   );
 }

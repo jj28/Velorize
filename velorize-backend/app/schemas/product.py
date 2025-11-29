@@ -12,9 +12,9 @@ class ProductBase(BaseModel):
     category: ProductCategory
     status: ProductStatus = ProductStatus.ACTIVE
     base_uom: UnitOfMeasure
-    pack_size: Optional[Decimal] = Field(None, gt=0, decimal_places=3)
-    standard_cost: Decimal = Field(..., gt=0, decimal_places=4)
-    selling_price: Optional[Decimal] = Field(None, gt=0, decimal_places=4)
+    pack_size: Optional[Decimal] = Field(None, gt=0)
+    standard_cost: Decimal = Field(..., gt=0)
+    selling_price: Optional[Decimal] = Field(None, gt=0)
     supplier_lead_time: Optional[int] = Field(None, ge=0)
     safety_stock_days: int = Field(7, ge=0)
     shelf_life_days: Optional[int] = Field(None, gt=0)
@@ -61,9 +61,9 @@ class ProductUpdate(BaseModel):
     category: Optional[ProductCategory] = None
     status: Optional[ProductStatus] = None
     base_uom: Optional[UnitOfMeasure] = None
-    pack_size: Optional[Decimal] = Field(None, gt=0, decimal_places=3)
-    standard_cost: Optional[Decimal] = Field(None, gt=0, decimal_places=4)
-    selling_price: Optional[Decimal] = Field(None, gt=0, decimal_places=4)
+    pack_size: Optional[Decimal] = Field(None, gt=0)
+    standard_cost: Optional[Decimal] = Field(None, gt=0)
+    selling_price: Optional[Decimal] = Field(None, gt=0)
     supplier_lead_time: Optional[int] = Field(None, ge=0)
     safety_stock_days: Optional[int] = Field(None, ge=0)
     shelf_life_days: Optional[int] = Field(None, gt=0)

@@ -15,27 +15,27 @@ class MarketingCalendarBase(BaseModel):
     promo_channel: PromoChannel = PromoChannel.ALL_CHANNELS
     target_customer_segments: Optional[str] = None
     geographic_scope: str = Field("Malaysia", max_length=255)
-    discount_percentage: Optional[Decimal] = Field(None, ge=0, le=100, decimal_places=2)
-    discount_amount: Optional[Decimal] = Field(None, ge=0, decimal_places=2)
-    minimum_purchase_amount: Optional[Decimal] = Field(None, ge=0, decimal_places=2)
-    maximum_discount_amount: Optional[Decimal] = Field(None, ge=0, decimal_places=2)
-    volume_threshold_1: Optional[Decimal] = Field(None, ge=0, decimal_places=2)
-    volume_discount_1: Optional[Decimal] = Field(None, ge=0, le=100, decimal_places=2)
-    volume_threshold_2: Optional[Decimal] = Field(None, ge=0, decimal_places=2)
-    volume_discount_2: Optional[Decimal] = Field(None, ge=0, le=100, decimal_places=2)
-    marketing_budget_rm: Decimal = Field(0, ge=0, decimal_places=2)
-    expected_roi_percentage: Optional[Decimal] = Field(None, decimal_places=2)
-    expected_uplift_percentage: Decimal = Field(0, ge=0, decimal_places=2)
-    expected_cannibalization_rate: Decimal = Field(0, ge=0, le=100, decimal_places=2)
-    baseline_volume_impact: Decimal = Field(0, ge=0, decimal_places=4)
+    discount_percentage: Optional[Decimal] = Field(None, ge=0, le=100)
+    discount_amount: Optional[Decimal] = Field(None, ge=0)
+    minimum_purchase_amount: Optional[Decimal] = Field(None, ge=0)
+    maximum_discount_amount: Optional[Decimal] = Field(None, ge=0)
+    volume_threshold_1: Optional[Decimal] = Field(None, ge=0)
+    volume_discount_1: Optional[Decimal] = Field(None, ge=0, le=100)
+    volume_threshold_2: Optional[Decimal] = Field(None, ge=0)
+    volume_discount_2: Optional[Decimal] = Field(None, ge=0, le=100)
+    marketing_budget_rm: Decimal = Field(0, ge=0)
+    expected_roi_percentage: Optional[Decimal] = Field(None)
+    expected_uplift_percentage: Decimal = Field(0, ge=0)
+    expected_cannibalization_rate: Decimal = Field(0, ge=0, le=100)
+    baseline_volume_impact: Decimal = Field(0, ge=0)
     status: PromoStatus = PromoStatus.PLANNED
     created_by_user_id: int
     approved_by_user_id: Optional[int] = None
     approved_at: Optional[datetime] = None
-    actual_sales_volume: Optional[Decimal] = Field(None, ge=0, decimal_places=4)
-    actual_sales_value_rm: Optional[Decimal] = Field(None, ge=0, decimal_places=2)
-    actual_uplift_percentage: Optional[Decimal] = Field(None, decimal_places=2)
-    actual_roi_percentage: Optional[Decimal] = Field(None, decimal_places=2)
+    actual_sales_volume: Optional[Decimal] = Field(None, ge=0)
+    actual_sales_value_rm: Optional[Decimal] = Field(None, ge=0)
+    actual_uplift_percentage: Optional[Decimal] = Field(None)
+    actual_roi_percentage: Optional[Decimal] = Field(None)
     description: Optional[str] = None
     success_criteria: Optional[str] = None
     lessons_learned: Optional[str] = None
@@ -81,21 +81,21 @@ class MarketingCalendarUpdate(BaseModel):
     promo_channel: Optional[PromoChannel] = None
     target_customer_segments: Optional[str] = None
     geographic_scope: Optional[str] = Field(None, max_length=255)
-    discount_percentage: Optional[Decimal] = Field(None, ge=0, le=100, decimal_places=2)
-    discount_amount: Optional[Decimal] = Field(None, ge=0, decimal_places=2)
-    minimum_purchase_amount: Optional[Decimal] = Field(None, ge=0, decimal_places=2)
-    maximum_discount_amount: Optional[Decimal] = Field(None, ge=0, decimal_places=2)
-    marketing_budget_rm: Optional[Decimal] = Field(None, ge=0, decimal_places=2)
-    expected_roi_percentage: Optional[Decimal] = Field(None, decimal_places=2)
-    expected_uplift_percentage: Optional[Decimal] = Field(None, ge=0, decimal_places=2)
-    expected_cannibalization_rate: Optional[Decimal] = Field(None, ge=0, le=100, decimal_places=2)
-    baseline_volume_impact: Optional[Decimal] = Field(None, ge=0, decimal_places=4)
+    discount_percentage: Optional[Decimal] = Field(None, ge=0, le=100)
+    discount_amount: Optional[Decimal] = Field(None, ge=0)
+    minimum_purchase_amount: Optional[Decimal] = Field(None, ge=0)
+    maximum_discount_amount: Optional[Decimal] = Field(None, ge=0)
+    marketing_budget_rm: Optional[Decimal] = Field(None, ge=0)
+    expected_roi_percentage: Optional[Decimal] = Field(None)
+    expected_uplift_percentage: Optional[Decimal] = Field(None, ge=0)
+    expected_cannibalization_rate: Optional[Decimal] = Field(None, ge=0, le=100)
+    baseline_volume_impact: Optional[Decimal] = Field(None, ge=0)
     status: Optional[PromoStatus] = None
     approved_by_user_id: Optional[int] = None
-    actual_sales_volume: Optional[Decimal] = Field(None, ge=0, decimal_places=4)
-    actual_sales_value_rm: Optional[Decimal] = Field(None, ge=0, decimal_places=2)
-    actual_uplift_percentage: Optional[Decimal] = Field(None, decimal_places=2)
-    actual_roi_percentage: Optional[Decimal] = Field(None, decimal_places=2)
+    actual_sales_volume: Optional[Decimal] = Field(None, ge=0)
+    actual_sales_value_rm: Optional[Decimal] = Field(None, ge=0)
+    actual_uplift_percentage: Optional[Decimal] = Field(None)
+    actual_roi_percentage: Optional[Decimal] = Field(None)
     description: Optional[str] = None
     success_criteria: Optional[str] = None
     lessons_learned: Optional[str] = None

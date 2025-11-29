@@ -13,16 +13,16 @@ class DemandForecastBase(BaseModel):
     forecast_method: ForecastMethod
     forecast_type: ForecastType = ForecastType.BASELINE
     status: ForecastStatus = ForecastStatus.DRAFT
-    baseline_demand: Decimal = Field(0, ge=0, decimal_places=4)
-    promotional_uplift: Decimal = Field(0, ge=0, decimal_places=4)
-    final_forecast: Decimal = Field(0, ge=0, decimal_places=4)
-    actual_demand: Optional[Decimal] = Field(None, ge=0, decimal_places=4)
-    absolute_error: Optional[Decimal] = Field(None, ge=0, decimal_places=4)
-    percentage_error: Optional[Decimal] = Field(None, decimal_places=4)
-    confidence_level: Optional[Decimal] = Field(None, ge=0, le=100, decimal_places=2)
-    forecast_bias: Decimal = Field(0, decimal_places=4)
-    seasonal_factor: Decimal = Field(1, gt=0, decimal_places=4)
-    trend_factor: Decimal = Field(1, gt=0, decimal_places=4)
+    baseline_demand: Decimal = Field(0, ge=0)
+    promotional_uplift: Decimal = Field(0, ge=0)
+    final_forecast: Decimal = Field(0, ge=0)
+    actual_demand: Optional[Decimal] = Field(None, ge=0)
+    absolute_error: Optional[Decimal] = Field(None, ge=0)
+    percentage_error: Optional[Decimal] = Field(None)
+    confidence_level: Optional[Decimal] = Field(None, ge=0, le=100)
+    forecast_bias: Decimal = Field(0)
+    seasonal_factor: Decimal = Field(1, gt=0)
+    trend_factor: Decimal = Field(1, gt=0)
     marketing_events: Optional[str] = None
     external_factors: Optional[str] = None
     version: str = Field("1.0", max_length=20)
@@ -67,14 +67,14 @@ class DemandForecastUpdate(BaseModel):
     forecast_method: Optional[ForecastMethod] = None
     forecast_type: Optional[ForecastType] = None
     status: Optional[ForecastStatus] = None
-    baseline_demand: Optional[Decimal] = Field(None, ge=0, decimal_places=4)
-    promotional_uplift: Optional[Decimal] = Field(None, ge=0, decimal_places=4)
-    final_forecast: Optional[Decimal] = Field(None, ge=0, decimal_places=4)
-    actual_demand: Optional[Decimal] = Field(None, ge=0, decimal_places=4)
-    confidence_level: Optional[Decimal] = Field(None, ge=0, le=100, decimal_places=2)
-    forecast_bias: Optional[Decimal] = Field(None, decimal_places=4)
-    seasonal_factor: Optional[Decimal] = Field(None, gt=0, decimal_places=4)
-    trend_factor: Optional[Decimal] = Field(None, gt=0, decimal_places=4)
+    baseline_demand: Optional[Decimal] = Field(None, ge=0)
+    promotional_uplift: Optional[Decimal] = Field(None, ge=0)
+    final_forecast: Optional[Decimal] = Field(None, ge=0)
+    actual_demand: Optional[Decimal] = Field(None, ge=0)
+    confidence_level: Optional[Decimal] = Field(None, ge=0, le=100)
+    forecast_bias: Optional[Decimal] = Field(None)
+    seasonal_factor: Optional[Decimal] = Field(None, gt=0)
+    trend_factor: Optional[Decimal] = Field(None, gt=0)
     marketing_events: Optional[str] = None
     external_factors: Optional[str] = None
     version: Optional[str] = Field(None, max_length=20)
@@ -90,6 +90,26 @@ class DemandForecastResponse(DemandForecastBase):
     forecast_performance_grade: str
     created_at: datetime
     updated_at: datetime
-    
+
     class Config:
         from_attributes = True
+
+
+class ForecastGenerationRequest(BaseModel):
+    product_id: int
+    forecast_period_start: date
+    forecast_period_end: date
+    forecast_method: ForecastMethod = ForecastMethod.EXPONENTIAL_SMOOTHING
+    include_marketing_events: bool = True
+    confidence_level_threshold: Optional[Decimal] = Field(None, ge=0, le=100)
+
+
+class ForecastAccuracyResponse(BaseModel):
+    product_id: int
+    total_forecasts: int
+    accurate_forecasts: int
+    accuracy_percentage: float
+    average_absolute_error: Decimal
+    average_percentage_error: Decimal
+    forecast_bias: Decimal
+    best_performing_method: Optional[str] = None

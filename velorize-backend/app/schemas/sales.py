@@ -10,22 +10,22 @@ class SalesActualBase(BaseModel):
     customer_id: int
     transaction_date: date
     invoice_number: str = Field(..., max_length=100)
-    quantity_sold: Decimal = Field(..., gt=0, decimal_places=4)
-    unit_price: Decimal = Field(..., gt=0, decimal_places=4)
-    gross_sales_amount: Decimal = Field(..., ge=0, decimal_places=2)
-    discount_amount: Decimal = Field(0, ge=0, decimal_places=2)
-    net_sales_amount: Decimal = Field(..., ge=0, decimal_places=2)
-    unit_cost: Decimal = Field(..., gt=0, decimal_places=4)
-    total_cost: Decimal = Field(..., ge=0, decimal_places=2)
-    gross_margin_amount: Decimal = Field(..., decimal_places=2)
-    gross_margin_percentage: Decimal = Field(..., decimal_places=2)
+    quantity_sold: Decimal = Field(..., gt=0)
+    unit_price: Decimal = Field(..., gt=0)
+    gross_sales_amount: Decimal = Field(..., ge=0)
+    discount_amount: Decimal = Field(0, ge=0)
+    net_sales_amount: Decimal = Field(..., ge=0)
+    unit_cost: Decimal = Field(..., gt=0)
+    total_cost: Decimal = Field(..., ge=0)
+    gross_margin_amount: Decimal = Field(...)
+    gross_margin_percentage: Decimal = Field(...)
     sales_channel: SalesChannel
     sales_rep_id: Optional[int] = None
     promotion_code: Optional[str] = Field(None, max_length=50)
     is_promotional_sale: bool = False
     delivery_location: Optional[str] = Field(None, max_length=255)
     delivery_date: Optional[date] = None
-    shipping_cost: Decimal = Field(0, ge=0, decimal_places=2)
+    shipping_cost: Decimal = Field(0, ge=0)
     notes: Optional[str] = None
 
 
@@ -77,11 +77,11 @@ class SalesOrderBase(BaseModel):
     confirmed_delivery_date: Optional[date] = None
     actual_delivery_date: Optional[date] = None
     product_id: int
-    quantity_ordered: Decimal = Field(..., gt=0, decimal_places=4)
-    quantity_shipped: Decimal = Field(0, ge=0, decimal_places=4)
-    quantity_remaining: Decimal = Field(..., ge=0, decimal_places=4)
-    unit_price: Decimal = Field(..., gt=0, decimal_places=4)
-    total_order_value: Decimal = Field(..., ge=0, decimal_places=2)
+    quantity_ordered: Decimal = Field(..., gt=0)
+    quantity_shipped: Decimal = Field(0, ge=0)
+    quantity_remaining: Decimal = Field(..., ge=0)
+    unit_price: Decimal = Field(..., gt=0)
+    total_order_value: Decimal = Field(..., ge=0)
     order_status: OrderStatus = OrderStatus.PENDING
     payment_status: PaymentStatus = PaymentStatus.PENDING
     sales_channel: SalesChannel
@@ -122,8 +122,8 @@ class SalesOrderCreate(SalesOrderBase):
 class SalesOrderUpdate(BaseModel):
     confirmed_delivery_date: Optional[date] = None
     actual_delivery_date: Optional[date] = None
-    quantity_shipped: Optional[Decimal] = Field(None, ge=0, decimal_places=4)
-    quantity_remaining: Optional[Decimal] = Field(None, ge=0, decimal_places=4)
+    quantity_shipped: Optional[Decimal] = Field(None, ge=0)
+    quantity_remaining: Optional[Decimal] = Field(None, ge=0)
     order_status: Optional[OrderStatus] = None
     payment_status: Optional[PaymentStatus] = None
     priority_level: Optional[str] = Field(None, max_length=20)

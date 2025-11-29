@@ -29,12 +29,13 @@ import {
   AccountTree,
   Analytics,
   AutoGraph,
-  OptimizeOutlined,
+  Tune,
   CalendarToday,
   FileUpload,
   Category,
   Store,
   Business,
+  Warning,
 } from '@mui/icons-material';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuthStore } from '../../store/authStore';
@@ -58,6 +59,12 @@ const navigationItems: NavItem[] = [
     label: 'Dashboard',
     path: '/dashboard',
     icon: Dashboard,
+  },
+  {
+    label: 'Expiration Risks',
+    path: '/expiration',
+    icon: Warning,
+    badge: 'F&B CRITICAL',
   },
   {
     label: 'Master Data',
@@ -119,7 +126,7 @@ const navigationItems: NavItem[] = [
       {
         label: 'Inventory Optimization',
         path: '/optimization',
-        icon: OptimizeOutlined,
+        icon: Tune,
       },
     ],
   },
@@ -224,13 +231,13 @@ export function Sidebar({ onMobileClose }: SidebarProps) {
                 borderRadius: 1,
                 mx: 1,
                 mb: 0.5,
-                color: 'text.secondary',
+                color: '#94A3B8',
                 '&:hover': {
-                  backgroundColor: 'action.hover',
+                  backgroundColor: 'rgba(51, 65, 85, 0.5)',
                 },
               }}
             >
-              <ListItemIcon sx={{ color: 'inherit', minWidth: 36 }}>
+              <ListItemIcon sx={{ color: '#94A3B8', minWidth: 36 }}>
                 <item.icon fontSize="small" />
               </ListItemIcon>
               <ListItemText 
@@ -238,9 +245,10 @@ export function Sidebar({ onMobileClose }: SidebarProps) {
                 primaryTypographyProps={{
                   fontSize: '0.875rem',
                   fontWeight: 500,
+                  color: '#E2E8F0',
                 }}
               />
-              {isOpen ? <ExpandLess /> : <ExpandMore />}
+              {isOpen ? <ExpandLess sx={{ color: '#94A3B8' }} /> : <ExpandMore sx={{ color: '#94A3B8' }} />}
             </ListItemButton>
           </ListItem>
           <Collapse in={isOpen} timeout="auto" unmountOnExit>
@@ -262,15 +270,15 @@ export function Sidebar({ onMobileClose }: SidebarProps) {
             borderRadius: 1,
             mx: 1,
             mb: 0.5,
-            backgroundColor: isActive ? 'primary.main' : 'transparent',
-            color: isActive ? 'primary.contrastText' : 'text.primary',
+            backgroundColor: isActive ? '#3B82F6' : 'transparent',
+            color: isActive ? '#FFFFFF' : '#CBD5E1',
             '&:hover': {
-              backgroundColor: isActive ? 'primary.dark' : 'action.hover',
+              backgroundColor: isActive ? '#2563EB' : 'rgba(51, 65, 85, 0.5)',
             },
           }}
         >
           <ListItemIcon sx={{ 
-            color: 'inherit', 
+            color: isActive ? '#FFFFFF' : '#94A3B8', 
             minWidth: 36,
           }}>
             <item.icon fontSize="small" />
@@ -282,6 +290,7 @@ export function Sidebar({ onMobileClose }: SidebarProps) {
                   sx={{
                     fontSize: '0.875rem',
                     fontWeight: isActive ? 600 : 500,
+                    color: isActive ? '#FFFFFF' : '#E2E8F0',
                   }}
                 >
                   {item.label}
@@ -303,7 +312,7 @@ export function Sidebar({ onMobileClose }: SidebarProps) {
   };
 
   return (
-    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', bgcolor: '#0F172A', color: '#E2E8F0' }}>
       {/* Header */}
       <Box sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
         <Box
@@ -311,7 +320,7 @@ export function Sidebar({ onMobileClose }: SidebarProps) {
             width: 40,
             height: 40,
             borderRadius: 1,
-            background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+            background: 'linear-gradient(45deg, #3B82F6 30%, #60A5FA 90%)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -323,24 +332,24 @@ export function Sidebar({ onMobileClose }: SidebarProps) {
           V
         </Box>
         <Box>
-          <Typography variant="h6" fontWeight="bold" color="primary">
+          <Typography variant="h6" fontWeight="bold" sx={{ color: '#FFFFFF' }}>
             Velorize
           </Typography>
-          <Typography variant="caption" color="text.secondary">
+          <Typography variant="caption" sx={{ color: '#94A3B8' }}>
             S&OP Platform
           </Typography>
         </Box>
       </Box>
 
-      <Divider />
+      <Divider sx={{ borderColor: '#1E293B' }} />
 
       {/* User Info */}
       {user && (
-        <Box sx={{ p: 2, backgroundColor: 'grey.50' }}>
-          <Typography variant="body2" fontWeight="medium">
+        <Box sx={{ p: 2, backgroundColor: 'rgba(30, 41, 59, 0.5)' }}>
+          <Typography variant="body2" fontWeight="medium" sx={{ color: '#F1F5F9' }}>
             {user.first_name} {user.last_name}
           </Typography>
-          <Typography variant="caption" color="text.secondary">
+          <Typography variant="caption" sx={{ color: '#94A3B8' }}>
             {user.role?.replace('_', ' ').toUpperCase()}
           </Typography>
         </Box>
@@ -354,11 +363,11 @@ export function Sidebar({ onMobileClose }: SidebarProps) {
       </Box>
 
       {/* Footer */}
-      <Box sx={{ p: 2, borderTop: 1, borderColor: 'divider' }}>
-        <Typography variant="caption" color="text.secondary" align="center" display="block">
+      <Box sx={{ p: 2, borderTop: 1, borderColor: '#1E293B' }}>
+        <Typography variant="caption" sx={{ color: '#64748B' }} align="center" display="block">
           Velorize v0.1.0
         </Typography>
-        <Typography variant="caption" color="text.secondary" align="center" display="block">
+        <Typography variant="caption" sx={{ color: '#64748B' }} align="center" display="block">
           Malaysian F&B S&OP
         </Typography>
       </Box>

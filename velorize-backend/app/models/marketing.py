@@ -34,6 +34,11 @@ class PromoChannel(str, Enum):
     FOOD_SERVICE = "food_service"
 
 
+# Aliases for backward compatibility
+MarketingEventType = PromoType
+EventStatus = PromoStatus
+
+
 class MarketingCalendar(Base):
     """Marketing calendar for tracking promotional activities and their demand impact."""
     

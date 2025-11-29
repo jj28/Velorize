@@ -13,16 +13,16 @@ interface AuthGuardProps {
 const publicRoutes = ['/login', '/register'];
 
 export function AuthGuard({ children }: AuthGuardProps) {
-  const { isAuthenticated, user, initializeAuth } = useAuthStore();
+  const { isAuthenticated, user, initialize } = useAuthStore();
   const pathname = usePathname();
   const router = useRouter();
   const [isLoading, setIsLoading] = React.useState(true);
 
   useEffect(() => {
     // Initialize auth state from localStorage
-    initializeAuth();
+    initialize();
     setIsLoading(false);
-  }, [initializeAuth]);
+  }, [initialize]);
 
   useEffect(() => {
     if (!isLoading) {

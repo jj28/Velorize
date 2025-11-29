@@ -33,6 +33,7 @@ import {
 import { DataGrid, GridColDef, GridActionsCellItem } from '@mui/x-data-grid';
 import { productsApi } from '../../lib/api/apiClient';
 import toast from 'react-hot-toast';
+import { AddProductDialog } from '@/components/products/AddProductDialog';
 
 interface Product {
   id: number;
@@ -54,6 +55,7 @@ interface Product {
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(0);
@@ -61,7 +63,7 @@ export default function ProductsPage() {
   const [total, setTotal] = useState(0);
   const [filterAnchor, setFilterAnchor] = useState<null | HTMLElement>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
-  const [selectedStatus, setSelectedStatus] = useState<string>('ACTIVE');
+  const [selectedStatus, setSelectedStatus] = useState<string>('');
 
   useEffect(() => {
     loadProducts();
@@ -222,14 +224,14 @@ export default function ProductsPage() {
       headerName: 'Selling Price',
       width: 120,
       type: 'number',
-      renderCell: (params) => params.value ? `RM ${params.value.toFixed(2)}` : '-',
+      renderCell: (params) => params.value != null ? `RM ${Number(params.value).toFixed(2)}` : '-',
     },
     {
       field: 'cost_price',
       headerName: 'Cost Price',
       width: 120,
       type: 'number',
-      renderCell: (params) => params.value ? `RM ${params.value.toFixed(2)}` : '-',
+      renderCell: (params) => params.value != null ? `RM ${Number(params.value).toFixed(2)}` : '-',
     },
     {
       field: 'reorder_level',
@@ -329,7 +331,7 @@ export default function ProductsPage() {
         <Button
           variant="contained"
           startIcon={<Add />}
-          onClick={() => toast.info('Add product functionality coming soon')}
+          onClick={() => setAddDialogOpen(true)}
         >
           Add Product
         </Button>
@@ -481,6 +483,13 @@ export default function ProductsPage() {
           />
         </Box>
       </Card>
+
+      {/* Add Product Dialog */}
+      <AddProductDialog
+        open={addDialogOpen}
+        onClose={() => setAddDialogOpen(false)}
+        onSuccess={loadProducts}
+      />
     </Container>
   );
 }

@@ -28,6 +28,7 @@ import {
 } from '@mui/icons-material';
 import { DataGrid, GridColDef, GridActionsCellItem } from '@mui/x-data-grid';
 import toast from 'react-hot-toast';
+import { AdjustStockDialog } from '@/components/inventory/AdjustStockDialog';
 
 interface StockItem {
   id: number;
@@ -58,6 +59,8 @@ interface InventoryAlert {
 
 export default function InventoryPage() {
   const [activeTab, setActiveTab] = useState(0);
+  const [items, setItems] = useState<StockItem[]>([]);
+  const [adjustStockDialogOpen, setAdjustStockDialogOpen] = useState(false);
   const [stockItems, setStockItems] = useState<StockItem[]>([]);
   const [alerts, setAlerts] = useState<InventoryAlert[]>([]);
   const [loading, setLoading] = useState(false);
@@ -364,7 +367,7 @@ export default function InventoryPage() {
         <Button
           variant="contained"
           startIcon={<Add />}
-          onClick={() => toast.info('Stock adjustment functionality coming soon')}
+          onClick={() => setAdjustStockDialogOpen(true)}
         >
           Adjust Stock
         </Button>
@@ -553,6 +556,13 @@ export default function InventoryPage() {
           </Box>
         )}
       </Card>
+
+      {/* Adjust Stock Dialog */}
+      <AdjustStockDialog
+        open={adjustStockDialogOpen}
+        onClose={() => setAdjustStockDialogOpen(false)}
+        onSuccess={loadInventoryData}
+      />
     </Container>
   );
 }
